@@ -56,6 +56,7 @@ __依次加载配置, 变量依次覆盖__
         filemode = true
         bare = false
         logallrefupdates = true
+        quotepath=false #避免中文文件名显示乱码
 [remote "origin"]
         url = git@github.com:bzadhere/myim.git
         fetch = +refs/heads/*:refs/remotes/origin/*
@@ -91,65 +92,6 @@ git checkout -b (branchname)
 git branch -d (branchname)
 # 合并指定分支到当前分支
 git merge <branchname>
-```
-```
-# tmpim分支创建切换
-[imdev@localhost ~/myim]$ git branch
-* master
-[imdev@localhost ~/myim]$ git branch tmpim
-[imdev@localhost ~/myim]$ git checkout tmpim
-Switched to branch 'tmpim'
-[imdev@localhost ~/myim]$ git branch
-  master
-* tmpim
-
-# master 合并 tmpim修改
-[imdev@localhost ~/myim]$ echo "hello world!" > test.txt
-[imdev@localhost ~/myim]$ ls
-ob_rel  Readme  source  test.txt
-[imdev@localhost ~/myim]$ git add test.txt 
-[imdev@localhost ~/myim]$ git commit test.txt -m 'add test.txt'
-[tmpim 5b824c1] add test.txt
- 1 file changed, 1 insertion(+)
- create mode 100644 test.txt
-[imdev@localhost ~/myim]$ git checkout master
-Switched to branch 'master'
-[imdev@localhost ~/myim]$ ls
-ob_rel  Readme  source
-[imdev@localhost ~/myim]$ git merge tmpim
-Updating 7706505..5b824c1
-Fast-forward
- test.txt | 1 +
- 1 file changed, 1 insertion(+)
- create mode 100644 test.txt
-[imdev@localhost ~/myim]$ ls
-ob_rel  Readme  source  test.txt
-
-# 分支合并冲突
-[imdev@localhost ~/myim]$ git checkout master
-Switched to branch 'master'
-Your branch is ahead of 'origin/master' by 2 commits.
-  (use "git push" to publish your local commits)
-[imdev@localhost ~/myim]$ git merge tmpim
-Auto-merging test.txt
-CONFLICT (content): Merge conflict in test.txt
-Automatic merge failed; fix conflicts and then commit the result.
-[imdev@localhost ~/myim]$ cat test.txt 
-hello world!
-<<<<<<< HEAD
-by zhangbb
-=======
-by tmpim
->>>>>>> tmpim
-[imdev@localhost ~/myim]$ vi test.txt 
-.......
-[imdev@localhost ~/myim]$ git status -s
-UU test.txt
-[imdev@localhost ~/myim]$ git add test.txt 
-[imdev@localhost ~/myim]$ git status -s
-M  test.txt
-[imdev@localhost ~/myim]$ git commit
-
 ```
 -----
 # 标签
@@ -248,9 +190,10 @@ git rm <file>
 git diff --stage
 // 比较指定版本差异
 git diff (id1) (id2) --binary --(path) > 目标文件路径
-// 增加全部文件
+// 增加全部文件 或 指定文件夹
 git add .
 git add --all
+git add <dir>
 // 提交指定文件或多个文件
 git commit <file> -m "comment"
 // 提交了所有 暂存区 的文件
@@ -272,6 +215,8 @@ dbg/
 # 只忽略dbg文件，不忽略dbg目录
 dbg
 !dbg/
+# 忽略.gitignore本身
+!.gitignore
 # 只忽略当前目录下的dbg文件和目录，子目录的dbg不在忽略范围内
 /dbg
 # 以'#'开始的行，被视为注释.
@@ -409,6 +354,7 @@ git stash clear
 4. 同步分支，合并，冲突解决，撤销，更新某些指定文件
 5. 暂存当前工作
 6. 推送到远程仓库，同步远程仓库到本地
+7. 文档查看, git cmd --help
 ```
 
 
@@ -419,6 +365,63 @@ git add README.md
 git commit -m "first commit"
 git remote add origin git@*************.git
 git push -u origin master
+
+# tmpim分支创建切换
+[imdev@localhost ~/myim]$ git branch
+* master
+[imdev@localhost ~/myim]$ git branch tmpim
+[imdev@localhost ~/myim]$ git checkout tmpim
+Switched to branch 'tmpim'
+[imdev@localhost ~/myim]$ git branch
+  master
+* tmpim
+
+# master 合并 tmpim修改
+[imdev@localhost ~/myim]$ echo "hello world!" > test.txt
+[imdev@localhost ~/myim]$ ls
+ob_rel  Readme  source  test.txt
+[imdev@localhost ~/myim]$ git add test.txt 
+[imdev@localhost ~/myim]$ git commit test.txt -m 'add test.txt'
+[tmpim 5b824c1] add test.txt
+ 1 file changed, 1 insertion(+)
+ create mode 100644 test.txt
+[imdev@localhost ~/myim]$ git checkout master
+Switched to branch 'master'
+[imdev@localhost ~/myim]$ ls
+ob_rel  Readme  source
+[imdev@localhost ~/myim]$ git merge tmpim
+Updating 7706505..5b824c1
+Fast-forward
+ test.txt | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 test.txt
+[imdev@localhost ~/myim]$ ls
+ob_rel  Readme  source  test.txt
+
+# 分支合并冲突
+[imdev@localhost ~/myim]$ git checkout master
+Switched to branch 'master'
+Your branch is ahead of 'origin/master' by 2 commits.
+  (use "git push" to publish your local commits)
+[imdev@localhost ~/myim]$ git merge tmpim
+Auto-merging test.txt
+CONFLICT (content): Merge conflict in test.txt
+Automatic merge failed; fix conflicts and then commit the result.
+[imdev@localhost ~/myim]$ cat test.txt 
+hello world!
+<<<<<<< HEAD
+by zhangbb
+=======
+by tmpim
+>>>>>>> tmpim
+[imdev@localhost ~/myim]$ vi test.txt 
+.......
+[imdev@localhost ~/myim]$ git status -s
+UU test.txt
+[imdev@localhost ~/myim]$ git add test.txt 
+[imdev@localhost ~/myim]$ git status -s
+M  test.txt
+[imdev@localhost ~/myim]$ git commit
 
 ```
 
