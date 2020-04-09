@@ -28,3 +28,43 @@ chattr +i /etc/resolv.conf
 // 2. 修改 /sbin/dhclient-script 把 make_resolv_conf 这个函数的调用都给注释掉
 ```
 
+
+
+##  ftp
+
+```
+// 安装
+yum install -y vsftpd
+// 配置
+vi /etc/vsftpd/vsftpd.conf
+
+# 不允许匿名访问
+anonymous_enable=NO 
+
+# 允许本地账户登录
+local_enable=YES
+
+# 在文件中的用户能离开主目录
+chroot_local_user=YES
+chroot_list_enable=YES
+chroot_list_file=/etc/vsftpd/chroot_list
+
+# 500 OOPS: vsftpd: refusing to run with writable root inside chroot()
+allow_writeable_chroot=YES
+
+# 支持ASCII模式的上传和下载功能
+ascii_upload_enable=YES
+ascii_download_enable=YES 
+
+// 重启
+systemctl restart vsftpd.service
+// 新建ftp用户 ftpuser
+useradd -d /var/ftp/public_root -g ftp -s /sbin/nologin ftpuser
+// 修改密码
+passwd ftpuser
+
+
+
+
+```
+
