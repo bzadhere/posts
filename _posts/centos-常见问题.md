@@ -4,6 +4,35 @@ date: 2020-02-26 15:10:23
 tags:
 ---
 
+## 安装软件
+
+```shell
+# 安装ifconfig, 搜错找到安装包, : 前面的就是
+yum search ifconfig
+yum install -y net-tools.x86_64
+
+# vim 安装
+yum install -y vim
+
+# git 安装
+yum install -y git
+
+# gcc/g++ 安装
+yum install -y gcc-c++.x86_64
+
+# 手动安装增强包
+mkdir -p /media/cdrom
+mount -t auto /dev/cdrom /media/cdrom
+cd /media/cdrom
+# 依赖 gcc/kernel-devel/bzip2/xorg-x11-server-Xorg
+# 更新下 yum update
+sh ./VBoxLinuxAdditions.run
+
+
+```
+
+
+
 
 
 ## DNS被自动修改
