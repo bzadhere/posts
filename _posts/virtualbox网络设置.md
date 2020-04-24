@@ -5,15 +5,65 @@ tags:
 categories: linux
 ---
 
-# 环境
+
+
+# CentOS网络配置说明
+
+```shell
+# 网络类型：Ethernet以太网
+TYPE=Ethernet  
+# MAC地址，ip addr 查看
+HWADDR=08:00:27:a7:93:d6
+# 引导协议：自动获取、static静态、none不指定          		
+BOOTPROTO=none            
+# 启动默认路由           		
+DEFROUTE=yes              
+# 不启用IPV4错误检测功能           		
+IPV4_FAILURE_FATAL=no         
+# 启用IPV6协议       		
+IPV6INIT=yes                   
+# 自动配置IPV6地址      		
+IPV6_AUTOCONF=yes
+# 启用IPV6默认路由		
+IPV6_DEFROUTE=yes
+# 不启用IPV6错误检测功能
+IPV6_FAILURE_FATAL=no
+# 网卡设备的别名
+NAME=eno16777736
+# 网卡设备的UUID唯一标识号                     		
+UUID=90528772-9967-46da-b401-f82b64b4acbc
+# 开机自动激活网卡	
+ONBOOT=yes 
+# 网卡的IP地址
+IPADDR=192.168.1.199     
+# 子网掩码的位数, 如 NETMASK=255.255.255.0 和 PREFIX=24 的作用是一样的，PREFIX优先起作用            		
+PREFIX=24                            		
+# 默认网关IP地址
+GATEWAY=192.168.1.1                  		
+# 子网掩码，不需要修改
+NETMASK=255.255.255.0
+IPV6_PEERDNS=yes 
+IPV6_PEERROUTES=yes 
+# DNS域名解析服务器的IP地址
+DNS1=6.6.6.6 
+DNS2=6.6.6.6 
+
+```
+
+
+
+# 历史方案
+
+虚拟机可以访问网络, 和宿主机可以相互访问
+
+## 环境
+
 vbox: 版本 5.2.*
 linux: Centos7*
 笔记本使用办公室有线网络
 
-# 需求
-虚拟机可以访问网络, 和宿主机可以相互访问
+## vbox配置
 
-# vbox配置
 1. 管理->主机网络管理->不启用dhcp, 设置虚拟网关
 <!-- more -->
 ![](virtualbox网络设置/1.png)
@@ -29,7 +79,8 @@ linux: Centos7*
 4. 宿主机网络共享
 ![](virtualbox网络设置/6.png)
 
-# centos配置
+## centos配置
+
 ```
 [root@localhost ~]# cat /etc/sysconfig/network-scripts/ifcfg-enp0s3
 TYPE=Ethernet
@@ -133,15 +184,73 @@ lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
 
 ```
 
-# 问题
+## 问题
+
 enp0s8 如果没有自动生成配置文件, 手工添加;
 更换网络后, 注意DNS也对应更改下;
 
-
-
-# 原主机网络设备管理
+## 原主机网络设备管理
 
 ![image-20191227112458605](virtualbox网络设置/image-20191227112458605.png)
 
 ![image-20191227112612189](virtualbox网络设置/image-20191227112612189.png)
+
+
+
+# 网络地址转换NAT
+
+## 环境
+
+vbox: 版本 6.1*
+linux: Centos7*
+
+## vbox 配置
+
+<img src="virtualbox网络设置/image-20200424152356480.png" alt="image-20200424152356480"  />
+
+
+
+![image-20200424145648613](virtualbox网络设置/image-20200424145648613.png)
+
+![image-20200424145703854](virtualbox网络设置/image-20200424145703854.png)
+
+
+
+![image-20200424152933950](virtualbox网络设置/image-20200424152933950.png)
+
+## CentOS配置
+
+![image-20200424153235431](virtualbox网络设置/image-20200424153235431.png)
+
+
+
+# 桥接网卡
+
+## vbox设置
+
+![image-20200424153525641](virtualbox网络设置/image-20200424153525641.png)
+
+## CentOS配置
+
+![image-20200424154303964](virtualbox网络设置/image-20200424154303964.png)
+
+```shell
+[root@localhost ~]# cat /etc/sysconfig/network-scripts/ifcfg-enp0s3 
+TYPE="Ethernet"
+PROXY_METHOD="none"
+BROWSER_ONLY="no"
+BOOTPROTO="dhcp"
+DEFROUTE="yes"
+IPV4_FAILURE_FATAL="no"
+IPV6INIT="yes"
+IPV6_AUTOCONF="yes"
+IPV6_DEFROUTE="yes"
+IPV6_FAILURE_FATAL="no"
+IPV6_ADDR_GEN_MODE="stable-privacy"
+NAME="enp0s3"
+UUID="2bf83a8e-995a-4734-bd5c-3fa287976897"
+DEVICE="enp0s3"
+ONBOOT="yes"
+[root@localhost ~]# 
+```
 
