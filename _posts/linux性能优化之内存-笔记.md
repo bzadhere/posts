@@ -120,6 +120,8 @@ valgrind/memleak/
 
 存在需要大量内存场景, 考虑栈内存或者内存池, 大页来优化内存分配管理
 
+valgrind/mtrace/dmalloc/ccmalloc/memwatch/debug_new
+
 # Swap交换分区
 ## 原理说明
 内存紧张时, linux通过直接回收和定期扫描方式, 来释放文件页和内存页, 把内存分配给 
