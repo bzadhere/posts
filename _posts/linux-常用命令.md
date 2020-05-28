@@ -920,6 +920,7 @@ sort/uniq #文本排序
 date +%s #将当前时间转成Unix时间戳
 date -d '2013-2-22 22:14' +%s #指定日期转成Unix时间戳
 date -d @1361542596 +"%Y-%m-%d %H:%M:%S" #指定格式输出
+date +"%s" # 显示当前时间的Unix时间戳
 grep 'aaa\|bbb' file  #查询&&&或$$$
 grep -v 'root' file #查询不包含root的行
 ps -ef | grep gmake | grep –v root | awk '{print $2}' | xargs  kill -9 # 杀进程
