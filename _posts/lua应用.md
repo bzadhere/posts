@@ -7,96 +7,293 @@ categories: 3rd
 
 # 基础
 全文基于lua5.1
+## 栈
+
+Lua和C语言数据交换, 有两个问题, 动态和静态类型之间区别, 自动和手动内存管理的区别
+Lua设计了一个抽象的栈, 用于与其他语言数据交换, 栈中元素可以保存任何Lua类型的值
+
+![image-20200526173904275](lua应用/image-20200526173904275.png)
+
+<!-- more -->
+
+```c
+// 一个栈里可以有不同类型的值，通过数据结构TValue保存
+struct TValue
+{
+	Value value;   // 值
+    int tt;        // 值类型
+}
+
+union Value
+{
+    GCObject* gc;   // 存需要回收的值
+    void* p;        // lua中的light userdata结构
+    lua_Number n;   // 存int或float
+    int b;          // 存boolean
+}
+
+// number, boolean, nil, light userdata 直接存，不需要回收
+// table, userdata、 函数、线程、和字符串 会自动回收
+union GCObject
+{
+    GCHeader gch;
+    union TString ts;
+    union UData u;
+    union Clourse cl;
+    struct Table h;
+    struct Proto p;
+    struct UpVal uv;
+    struct lua_State th;
+}
+
+```
+
 ## CAPI
 
 > lua.h 基础函数, lua_ 开头, Lua没有定义全局变量, lua_State 动态结构保持所有状态
 > lauxlib.h 辅助函数 luaL_ 开头, 基于基础函数api, 侧重解决具体业务
 > lualib.h 定义了标准库, 用户可以包含这个文件, 来统一openlibs, 如 luaL_openlibs
 
-## 栈
-Lua和C语言数据交换, 有两个问题, 动态和静态类型之间区别, 自动和手动内存管理的区别
-Lua设计了一个抽象的栈, 用于与其他语言数据交换, 栈中元素可以保存任何Lua类型的值
 
-<!-- more -->
 
-{% fold 点击显代码 %}
-```
-// 入栈, 常量nil, 布尔, 双精度浮点, 整数, 任意长度字符串, 零结尾字符串
-// 注意lua不会有指向外部字符串的指针, 会自己生产副本
+### 压栈
+
+```c++
+// 入栈, 常量nil, 布尔, 双精度浮点, 整数
 void lua_pushnil(lua_State* L); 
 void lua_pushboolean(lua_State* L, int bool);
 void lua_pushnumber(lua_State* L, lua_Number n);
 void lua_pushinteger(lua_State* L, lua_Integer n);
+
+// 入栈 零结尾字符串, Lua 对这个字符串做一次内存拷贝（或是复用一个拷贝），函数返回后s可释放
+// 入栈 任意长度len字符串 
+void lua_pushstring (lua_State *L, const char *s);
 void lua_pushlstring(lua_State* L, const char* s, size_t len);
+
 void lua_push(lua_State* L, const char* s);
 
-// 查询元素, 索引:1 入栈第一个元素, 2 入栈第二个元素; -1 栈顶元素, -2 
-int lua_is(lua_State* L, int index);
+// 将idx索引上的值的副本压入栈顶
+void lua_pushvalue(lua_State* L, int index); 
+
+// 将一个 C 函数压入堆栈
+void lua_pushcfunction (lua_State *L, lua_CFunction f); 
+typedef int (*lua_CFunction) (lua_State *L); 
+
+// 把一个新的 C closure 压入堆栈
+// 与函数关联的值被叫做 upvalue， 在函数被调用的时候访问的到
+void lua_pushcclosure (lua_State *L, lua_CFunction fn, int n);
+
+// light userdata 表示一个指针，一个像数字一样的值，没有独立的 metatable ，而且也不会被回收
+void lua_pushlightuserdata (lua_State *L, void *p);
+
+// 把 L 中提供的线程压栈。如果这个线程是当前状态机的主线程的话，返回 1
+int lua_pushthread (lua_State *L);
+
+// 把 t[k] 值压入堆栈， 这里的 t 是指有效索引 index 指向的值， 而 k 则是栈顶放的值
+void lua_gettable (lua_State *L, int index);
+
+// 把 t[k] 值压入堆栈，这里的 t 是指有效索引 index 指向的值
+void lua_getfield (lua_State *L, int index, const char *k);
+
+// 把全局变量 name 里的值压入堆栈
+void lua_getglobal (lua_State *L, const char *name);
+#define lua_getglobal(L,s)  lua_getfield(L, LUA_GLOBALSINDEX, s)
+
+// 把给定索引指向的值的元表压入堆栈
+// 如果索引无效，或是这个值没有元表，函数将返回 0 并且不会向栈上压任何东西
+int lua_getmetatable (lua_State *L, int index);
+
+// 从栈上弹出一个 key（键）， 然后把索引指定的表中 key-value（健值）对压入堆栈
+// 如果表中以无更多元素， 那么 lua_next 将返回 0 （什么也不压入堆栈）
+int lua_next (lua_State *L, int index);
+
+// 典型用法遍历一张表
+     /* table 放在索引 't' 处 */
+     lua_pushnil(L);  /* 第一个 key */
+     while (lua_next(L, t) != 0) {
+       /* 用一下 'key' （在索引 -2 处） 和 'value' （在索引 -1 处） */
+       printf("%s - %s\n",
+              lua_typename(L, lua_type(L, -2)),
+              lua_typename(L, lua_type(L, -1)));
+       /* 移除 'value' ；保留 'key' 做下一次迭代 */
+       lua_pop(L, 1);
+     }
+
+```
+### 出栈
+
+```c++
+// 从堆栈中弹出 n 个元素
+void lua_pop (lua_State *L, int n);
+
+// 返回栈中元素个数
+int lua_gettop(lua_State* L); 
+
+// 从栈中弹出n个元素, 将栈顶设置到指定位置, 修改栈元素个数, 不足用nil补充, 多余的丢弃
+void lua_settop(lua_State* L, int index);
+#define lua_pop(L, n) lua_settop(L, -(n)-1) 
+
+lua_settop(L, 0); // 特例清除栈
+
+// 作一个等价于 t[k] = v 的操作，这里 t 是一个给定有效索引index 处的值，
+// v 指栈顶的值，而 k 是栈顶之下的那个值, 从堆栈弹出k,v
+void lua_settable (lua_State *L, int index);
+
+// 等价于 t[k] = v 的操作，这里 t 是给出的有效索引index 处的值，而v 是栈顶的那个值。
+// 从堆栈弹出栈顶值v
+void lua_setfield (lua_State *L, int index, const char *k);
+
+// 从堆栈上弹出一个值，并将其设到全局变量 name 中
+void lua_setglobal (lua_State *L, const char *name);
+  #define lua_setglobal(L,s)   lua_setfield(L, LUA_GLOBALSINDEX, s)
+
+// 把一个 table 弹出堆栈，并将其设为给定索引处的值的 metatable
+int lua_setmetatable (lua_State *L, int index);
+
+// Lua 中数字的类型。确省是 double ，但是你可以在 luaconf.h 中修改它。
+typedef double lua_Number;
+
 //  从栈中获取一个值
 int lua_toboolean(lua_State* L, int index);
 lua_Number lua_tonumber(lua_State* L, int index);
 lua_Integer lua_tointeger(lua_State* L, int index);
 const char* lua_tolstring(lua_State* L, int index, size_t *len);
+// 返回指定的索引处的值的长度
 size_t lua_objlen(lua_State* L, int index);
 
-// 类型(lua.h)
-LUA_TNIL, LUA_TBOOLEAN, LUA_TNUMBER, LUA_TSTRING, LUA_TTHREAD, LUA_TUSERDATA, LUA_TFUNCTION
+```
 
-// 其他操作
-// 返回栈中元素个数
-int lua_gettop(lua_State* L); 
-// 将栈顶设置到指定位置, 修改栈元素个数, 不足用nil补充, 多余的丢弃
-// 特例清除栈
-void lua_settop(lua_State* L, int index);
-lua_settop(L, 0);
-// 从栈中弹出n个元素
-#define lua_pop(L, n) lua_settop(L, -(n)-1)
+### 数组
 
-void lua_pushvalue(lua_State* L, int index);
+```c++
+// 把 t[n] 的值压栈， 这里的 t 是指给定索引 index 处的一个值。它不会触发元方法。
+void lua_rawgeti (lua_State *L, int index, int n);
+// 等价于 t[n] = v， 这里的 t 是指给定索引 index 处的一个值， 而 v 是栈顶的值。不会触发元方法
+void lua_rawseti (lua_State *L, int index, int n);
+
+```
+
+### 检查
+
+```c++
+// 确保堆栈上至少有 extra 个空位
+// 如果不能把堆栈扩展到相应的尺寸，函数返回 false
+// 这个函数永远不会缩小堆栈； 如果堆栈已经比需要的大了，那么就放在那里不会产生变化
+int lua_checkstack (lua_State *L, int extra);
+
+// 返回给定索引处的值的类型
+// LUA_TNIL, LUA_TBOOLEAN, LUA_TNUMBER, LUA_TSTRING, LUA_TTHREAD, LUA_TUSERDATA, LUA_TFUNCTION
+int lua_type (lua_State *L, int index);
+// 返回 tp 表示的类型名
+const char *lua_typename  (lua_State *L, int tp);
+
+int lua_iscfunction (lua_State *L, int index);
+int lua_isfunction (lua_State *L, int index);
+int lua_islightuserdata (lua_State *L, int index);
+int lua_isnil (lua_State *L, int index);
+int lua_isnumber (lua_State *L, int index);
+int lua_isstring (lua_State *L, int index);
+int lua_istable (lua_State *L, int index);
+int lua_isthread (lua_State *L, int index);
+int lua_isuserdata (lua_State *L, int index);
+int lua_lessthan (lua_State *L, int index1, int index2);
+// 查询元素, 索引:1 入栈第一个元素, 2 入栈第二个元素; -1 栈顶元素, -2 
+int lua_is(lua_State* L, int index);
+
+```
+
+
+
+```c++
+
 void lua_remove(lua_State* L, int index);
 void lua_insert(lua_State* L, int index);
 void lua_replace(lua_State* L, int index);
-
-
-// example
-static void stackDump(lua_State* L)
-{
-  int top = lua_gettop(L);
-  for(int i=1; i<top; ++i)
-  {
-    int t = lua_type(L, i);
-	switch(t)
-	{
-	  case LUA_TSTRING:
-	  {
-	    printf("%s", lua_tostring(L, i));
-	    break;
-	  }
-	  case LUA_TBOOLEAN:
-	  {
-	    printf(lua_toboolean(L, i)? "true" : "false");
-		break;
-	  }
-	  case :
-	  {
-	  }
-	  default:
-	  { /*其他值*/
-	    printf("%s", lua_typename(L, i));
-		break;
-	  }
-	  printf(" ");
-	}
-  }
-  printf("\n");
-}
 ```
-{% endfold %}
+
+
+
+### 创建
+
+```c++
+// 创建新的状态机;参数 f 是一个分配器函数;第二个参数 ud ，这个指针将在每次调用分配器时被直接传入
+lua_State *lua_newstate (lua_Alloc f, void *ud);
+
+// 创建一个空 table ，并将之压入堆栈
+void lua_newtable (lua_State *L);
+
+lua_newtable(L);//要给lua脚本返回一个table类型，先要new一个，压入栈顶
+lua_pushnumber(L, 1); //将key先压入栈
+lua_pushstring(L, "table2lua"); //再将value压入栈
+lua_settable(L, -3);//settable将操作-2，-1编号的键值对设置到table中，并把key-value从栈中移除
+
+// 创建一个新线程，并将其压入堆栈，并返回维护这个线程的 lua_State 指针
+// 这个函数返回的新状态机共享原有状态机中的所有对象（比如一些 table），但是它有独立的执行堆栈
+// 没有显式的函数可以用来关闭或销毁掉一个线程，靠垃圾回收
+lua_State *lua_newthread (lua_State *L);
+
+// 分配一块指定大小的内存块，把内存块地址作为一个完整的 userdata 压入堆栈，并返回这个地址
+// 有着自己的元表，而且它在被GC回收时，可以被监测到
+void *lua_newuserdata (lua_State *L, size_t size);
+```
+
+
+
+### 函数注册
+
+```c++
+// 把 C 函数 f 设到全局变量 name 中
+void lua_register (lua_State *L,
+                   const char *name,
+                   lua_CFunction f);
+#define lua_register(L,n,f) \
+    (lua_pushcfunction(L, f), lua_setglobal(L, n))
+```
+
+
+
+
+
+### 函数调用
+
+```c++
+void lua_call (lua_State *L, int nargs, int nresults);
+// case
+     lua_getfield(L, LUA_GLOBALSINDEX, "f");          /* 将调用的函数 */
+     lua_pushstring(L, "how");                          /* 第一个参数 */
+     lua_getfield(L, LUA_GLOBALSINDEX, "t");          /* table 的索引 */
+     lua_getfield(L, -1, "x");         /* 压入 t.x 的值（第 2 个参数）*/
+     lua_remove(L, -2);                           /* 从堆栈中移去 't' */
+     lua_pushinteger(L, 14);                           /* 第 3 个参数 */
+     lua_call(L, 3, 1); /* 调用 'f'，传入 3 个参数，并索取 1 个返回值 */
+     lua_setfield(L, LUA_GLOBALSINDEX, "a");      /* 设置全局变量 'a' */
+
+lua_pcall (lua_State *L, int nargs, int nresults, int errfunc);
+
+// lua_CFunction
+     static int foo (lua_State *L) {
+       int n = lua_gettop(L);    /* 参数的个数 */
+       lua_Number sum = 0;
+       int i;
+       for (i = 1; i <= n; i++) {
+         if (!lua_isnumber(L, i)) {
+           lua_pushstring(L, "incorrect argument");
+           lua_error(L);
+         }
+         sum += lua_tonumber(L, i); /* 取值 */
+       }
+       lua_pushnumber(L, sum/n);   /* 第一个返回值 */
+       lua_pushnumber(L, sum);     /* 第二个返回值 */
+       return 2;                   /* 返回值的个数 */
+     }
+```
+
+
 
 # 应用
-## 调用lua文件中的变量/函数
+## C调用lua文件中的变量/函数
 {% fold 点击显代码 %}
-```
+```c++
 // lua文件
 width = 30
 height = 80
@@ -158,7 +355,7 @@ void f(int x, int y)
 
 ## Lua调用C函数
 {% fold 点击显代码 %}
-```
+```c++
 // 定义c函数
 static int l_sin(lua_State* L)
 {
@@ -191,7 +388,7 @@ static int l_dir(lua_State* L)
 
 ## Lua调用C模块
 {% fold 点击显代码 %}
-```
+```c++
 // 1. 定义C模块函数
 static int l_dir(lua_State* L)
 {...}
