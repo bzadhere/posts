@@ -76,3 +76,19 @@ Google Public DNS （8.8.8.8， 8.8.4.4）
 腾讯 119.29.29.29
 
 C:\Windows\System32\drivers\etc 一般用不到，能访问的指定合适的DNS肯定可以访问
+
+## c盘清理
+
+C:\Users\zhangbb\AppData\Roaming\PCDr    dell诊断支持使用
+
+C:\Program Files\WindowsApps   应用商店，不用可删除
+
+> windows.old 升级备份，可删除
+
+>  删除应用qq/微信缓存
+
+> 关闭休眠：Cortana=>cmd=>以管理员身份运行=>powercfg /h off 
+
+> 删除临时文件：设置=>系统=>存储=>C盘=>临时文件=>删除文件
+
+> 虚拟内存更改：我的电脑=>右键属性=>高级系统设置=>高级=>（视觉效果)设置=>高级=>(虚拟内存)更改
