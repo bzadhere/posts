@@ -491,3 +491,110 @@ int setnonblocking( int fd)
 }
 ```
 
+## linux 服务程序规范
+
+### 日志
+
+```c++
+#include <syslog.h>
+
+void syslog(int priority, const char* message...);
+
+// 设置格式
+void openlog(const char* ident, int logopt, int facility);
+ident: 指定字符串添加到日期和时间之后
+logopt: LOG_PID 日志消息中包含进行ID
+    
+// 设置日志级别
+int setsyslogmask(int mask);
+
+// 关闭日志功能
+void closelog();
+```
+
+
+
+### 用户信息
+
+```c++
+#include <sys/type.h>
+#include <unistd.h>
+
+uid_t getuid();
+uid_t geteuid();
+gid_t getgid();
+gid_t getegid();
+
+...set...
+
+// 有效用户ID, 任何用户执行su命令，有效用户就是root，可以访问/etc/passwd
+// uid 是启动进程的用户ID, euid是文件所有者的ID
+```
+
+
+
+### 进程间关系
+
+```c++
+#include <unistd.h>
+
+// 进程组ID
+pid_t getpgid(); 
+int setpgid(pid_t pid, pid_t pgid);
+
+// 会话 = 进程组首领的PGID
+pid_t getsid(pid_t pid);
+pid_t setsid(void);
+
+// example
+ps -o pid ,ppid, gpid, sid, comm |less
+```
+
+
+
+### 系统资源限制
+
+```c++
+#include <sys/resource.h>
+
+int getrlimmt(int resource, struct rlimit* rlim);
+int setrlimit(int resource, struct rlimt* rlim);
+```
+
+
+
+### 改变工作目录和根目录
+
+```c++
+#include <unistd.h>
+
+char* getcwd(char* buf, size_t size);
+buf: 存放工作目录绝对路径的存储
+size: 存储长度
+
+int chdir(const char* path);
+path: 切换的目标目录
+
+int chroot(const char* path);
+path: 目标根目录
+desc: 读取的是新根下的目录和文件，这是一个与原系统根下文件不相关的目录结构
+```
+
+
+
+### 服务程序后台化
+
+```c++
+#include <>
+
+int daemon(int nochdir, int noclose);
+nochdir: 0 表示"/", 否则用当前工作目录
+noclose: 0 标准输入/输出/错误 重定向到 /dev/null
+```
+
+
+
+## 高性能服务器框架
+
+### 服务器模型
+
