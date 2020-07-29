@@ -1,9 +1,7 @@
----
 title: git操作命令
 date: 2019-08-14 09:44:48
 tags:
 categories: tools
----
 
 
 
@@ -11,45 +9,81 @@ categories: tools
 
 [参考地址]( http://igit.linuxtoy.org/index.html )
 
-# 创建仓库
 
-__git clone [url] [dir]__
-__git init__
 
-git@github.com:bzadhere/myim.git ssh协议
-https://github.com/bzadhere/myim.git https协议
+# 基本概念
 
-__git生成SSH公钥__
-~/.ssh 目录下有公钥, 或ssh-keygen创建, 生成公钥id_rsa.pub和私钥id_rsa 
 
+
+![1](git操作命令/1-1596006424936.png)
+
+- Workspace：工作区，能看到的目录
+- Index / Stage：暂存区
+- Repository：仓库区（或本地仓库）
+- Remote：远程仓库
+
+
+
+__HEAD__: 指向该分支上的最后一次提交，待补充
+
+__master__: 只是这个repository中默认创建的第一个branch
+
+__origin__: 远程仓库在本地的标签或者别名，git clone url 默认创建的指向这个远程代码库的标签
+
+# 新建代码库
+
+
+
+```shell
+# 在当前目录新建一个Git代码库
+git init
+# 新建一个目录，将其初始化为Git代码库
+$ git init [project-name]
+# 下载一个项目和它的整个代码历史
+# url git@github.com:bzadhere/myim.git 或 https://github.com/bzadhere/myim.git
+git clone [url] [dir]
 ```
+
+
+
+```shell
+# 添加ssh keys，按三次回车（密码为空），生成密匙。
 $ ssh-keygen -t rsa -C "youremail@example.com"
-// github上，进入 Account Settings（账户配置），左边选择SSH Keys， 
-// Add SSH Key,title随便填，粘贴在你电脑上生成的key
+
+# github上，进入 Account Settings（账户配置），左边选择SSH Keys， 
+# Add SSH Key,title随便填，粘贴在你电脑上生成的key
+# ~/.ssh 目录下有公钥, 或ssh-keygen创建, 生成公钥id_rsa.pub和私钥id_rsa 
+
 $ ssh -T git@github.com
 Hi xxxx! You've successfully authenticated, but GitHub does not provide shell access.
 ```
 <!-- more -->
------
-# 基本概念
-* __working tree:__ 能看到的目录
-* __HEAD:__ 是当前分支引用的指针，它总是指向该分支上的最后一次提交(commit)
-* __Index:__ 索引是你的“预期的下一次提交”–“暂存区域”，运行git add后，代码就进入“暂存区域”
 
-git add 索引就记录
-git commit 暂存区目录树写到对象库中, master分支相应更新。master指向的目录树就是提交时暂存区的目录树
-git reset HEAD 暂存区的目录树会被重写, 被 master 分支指向的目录树所替换, 但是工作区不受影响
-git rm --cached <file> 从暂存区删文件, 工作区不变
-git checkout HEAD(.) 或git checkout HEAD <file> 会用 HEAD 指向的分支中的全部或部分文件替换暂存区和以及工作区中的文件
 
------
+
 # 配置说明
-__依次加载配置, 变量依次覆盖__
-/etc/gitconfig git config --system
-~/.gitconfig git config --global
-.git/config git config --list 一般就用这个
 
-```
+
+```shell
+# 用户主目录下全局配置~/.gitconfig, 项目目录下项目配置.git/config, 依次加载变量覆盖
+# 显示当前的Git配置
+$ git config --list
+
+# 编辑Git配置文件
+$ git config -e [--global]
+
+# 设置提交代码时的用户信息
+$ git config [--global] user.name "[name]"
+$ git config [--global] user.email "[email address]"
+
+# 别名
+git config --global alias.st status;
+git config --global alias.ci commit;
+git config --global alias.co checkout;
+git config --global alias.br branch;
+git config --global alias.last 'log -1 HEAD';
+
+
 [imdev@localhost .git]$ cat config
 [core]
         repositoryformatversion = 0
@@ -68,81 +102,139 @@ __依次加载配置, 变量依次覆盖__
         email = bzadhere@gmail.com
 ```
 
-__别名__
-```
-git config --global alias.st status;
-git config --global alias.ci commit;
-git config --global alias.co checkout;
-git config --global alias.br branch;
-git config --global alias.last 'log -1 HEAD';
-```
------
+
 # 分支操作
 
-```
-# 创建分支
-git branch (branchname)
-# 切换分支
-git checkout (branchname)
-# 列出分支
+```shell
+# 列出所有本地分支, -r 列出所有远程分支, -a 列出所有本地和远程分支
 git branch
-# 创建并切换到该分支
-git checkout -b (branchname)
+
+# 新建一个分支, 并停留在当前分支
+git branch (branch-name)
+
+# 新建一个分支，并切换到该分支
+git checkout -b (branch-name)
+
+# 新建一个分支，指向指定commit
+$ git branch [branch] [commit]
+# 新建一个分支，与指定的远程分支建立追踪关系
+$ git branch --track [branch] [remote-branch]
+
+# 切换到一个分支，并更新工作区
+git checkout (branch-name)
+# 切换到上一个分支
+$ git checkout -
+
+# 选择一个commit，合并进当前分支
+git cherry-pick [commit]
+
 # 删除分支
-git branch -d (branchname)
+git branch -d (branch-name)
+# 删除远程分支
+git push origin --delete [branch-name]
+git branch -dr [remote/branch]
+
 # 合并指定分支到当前分支
-git merge <branchname>
+git merge <branch-name>
 ```
 -----
-# 标签
-```
-# 查看标签
-git tag
-# 添加标签
-git tag -a v1.0
-# 指定版本添加标签
-git tag -a v1.0 c3d2d07
-// 删除
-git tag -d v1.0
-// 标签传送到远端服务器上
-git push <remote> [tagname]
-git push <remote> --tags
+# 标签操作
+```shell
+# 列出所有tag
+$ git tag
+
+# 新建一个tag在当前commit
+$ git tag [tag]
+$ git tag -a v1.0
+
+# 新建一个tag在指定commit
+$ git tag [tag] [commit]
+$ git tag v1.0 c3d2d07
+
+# 删除本地tag
+$ git tag -d [tag]
+
+# 删除远程tag
+$ git push origin :refs/tags/[tagName]
+
+# 查看tag信息
+$ git show [tag]
+
+# 提交指定tag
+$ git push [remote] [tag]
+
+# 提交所有tag
+$ git push [remote] --tags
+
+# 新建一个分支，指向某个tag
+$ git checkout -b [branch] [tag]
+
 ```
 -----
 
-# 查看日志和文件状态
+# 查看信息
 
-```
-# 查看那些文件修改了
+```shell
+# 显示有变更的文件
 $ git status -s
 
-# 查看帮助
-[imdev@localhost ~/myim]$ git help log
+# 显示当前分支的版本历史
+$ git log
 
-# 查看修改日志
-[imdev@localhost ~/myim]$ git log
-commit 6ee178bf83f1996568401cfb23411b3c046922e7
-Merge: ebe63a1 c3d2d07
-Author: bzadhere <bzadhere@gmail.com>
-Date:   Mon Aug 19 23:22:30 2019 -0400
+# 显示commit历史，以及每次commit发生变更的文件
+$ git log --stat
 
-    Merge branch 'tmpim'
-    
-    Conflicts:
-        test.txt
+# 搜索提交历史，根据关键词
+$ git log -S [keyword]
 
-commit c3d2d07be4add9fb1eba57b49fc3fe0202615dc3
-Author: bzadhere <bzadhere@gmail.com>
-Date:   Mon Aug 19 23:20:10 2019 -0400
+# 显示某个commit之后的所有变动，每个commit占据一行
+$ git log [tag] HEAD --pretty=format:%s
 
-    modify from tmpim
+# 显示某个commit之后的所有变动，其"提交说明"必须符合搜索条件
+$ git log [tag] HEAD --grep feature
 
-commit ebe63a1782656804e002a35ec372195ba72ebdfd
-Author: bzadhere <bzadhere@gmail.com>
-Date:   Mon Aug 19 23:17:07 2019 -0400
+# 显示某个文件的版本历史，包括文件改名
+$ git log --follow [file]
+$ git whatchanged [file]
 
-    modify from master
-......
+# 显示指定文件相关的每一次diff
+$ git log -p [file]
+
+# 显示过去5次提交
+$ git log -5 --pretty --oneline
+
+# 显示所有提交过的用户，按提交次数排序
+$ git shortlog -sn
+
+# 显示指定文件是什么人在什么时间修改过
+$ git blame [file]
+
+# 显示暂存区和工作区的差异
+$ git diff
+
+# 显示暂存区和上一个commit的差异
+$ git diff --cached [file]
+
+# 显示工作区与当前分支最新commit之间的差异
+$ git diff HEAD
+
+# 显示两次提交之间的差异
+$ git diff [first-branch]...[second-branch]
+
+# 显示今天你写了多少行代码
+$ git diff --shortstat "@{0 day ago}"
+
+# 显示某次提交的元数据和内容变化
+$ git show [commit]
+
+# 显示某次提交发生变化的文件
+$ git show --name-only [commit]
+
+# 显示某次提交时，某个文件的内容
+$ git show [commit]:[filename]
+
+# 显示当前分支的最近几次提交
+$ git reflog
 
 # 简洁版本--oneline, 分支合并--graph
 [imdev@localhost ~/myim]$ git log --oneline --graph
@@ -165,43 +257,92 @@ git log master..branch
 ------
 # 远程仓库
 
-```
-// 查看当前的远程仓库
-git remote -v
-// 查看远程仓库版本库信息
-git remote show [shortname]
-// shortname 别名
-git remote add [shortname] [url]
-// 重命名
+```shell
+
+# 下载远程仓库的所有变动
+$ git fetch [remote]
+
+# 显示所有远程仓库
+$ git remote -v
+
+# 显示某个远程仓库的信息
+$ git remote show [remote]
+
+# 增加一个新的远程仓库，并命名shortname
+$ git remote add [shortname] [url]
+
+# 取回远程仓库的变化，并与本地分支合并
+$ git pull [remote] [branch]
+
+# 上传本地指定分支到远程仓库
+$ git push [remote] [branch]
+
+# 强行推送当前分支到远程仓库，即使有冲突
+$ git push [remote] --force
+
+# 推送所有分支到远程仓库
+$ git push [remote] --all
+
+# 重命名
 git remote rename old new
-// 删除
+# 删除
 git remote rm [shortname]
 
 ```
 
 ------
-# 修改提交
+# 代码提交
+```shell
+
+# 提交暂存区到仓库区
+$ git commit -m [message]
+
+# 提交暂存区的指定文件到仓库区
+$ git commit [file1] [file2] ... -m [message]
+
+# 提交工作区自上次commit之后的变化，直接到仓库区
+$ git commit -a
+
+# 提交时显示所有diff信息
+$ git commit -v
+
+# 使用一次新的commit，替代上一次提交
+# 如果代码没有任何新变化，则用来改写上一次commit的提交信息
+$ git commit --amend -m [message]
+
+# 重做上一次commit，并包括指定文件的新变化
+$ git commit --amend [file1] [file2] ...
+
 ```
-// 文件改名
-git mv <old> <new>
-// 彻底删除文件,  包括工作区和暂存区
-git rm <file>
-// 暂存区和上一个版本差异
-git diff --stage
-// 比较指定版本差异
-git diff (id1) (id2) --binary --(path) > 目标文件路径
-// 增加全部文件 或 指定文件夹
-git add .
-git add --all
-git add <dir>
-// 提交指定文件或多个文件
-git commit <file> -m "comment"
-// 提交了所有 暂存区 的文件
-git commit -m "commit"
-// 提交分别来自不同地方的文件，比如 工作区的 和 暂存区的
-git commit -o a.txt b.txt -m "comment"
-// 忽略文件或文件夹，在项目根目录下面 添加 .gitignore文件 
-// 只能忽略那些原来没有被track的文件，如果某些文件已经被纳入了版本管理中，则修改.gitignore是无效的
+------
+# 增删文件
+
+```shell
+
+# 添加指定文件到暂存区
+$ git add [file1] [file2] ...
+
+# 添加指定目录到暂存区，包括子目录
+$ git add [dir]
+
+# 添加当前目录的所有文件到暂存区
+$ git add .
+
+# 添加每个变化前，都会要求确认
+# 对于同一个文件的多处变化，可以实现分次提交
+$ git add -p
+
+# 删除工作区文件，并且将这次删除放入暂存区
+$ git rm [file1] [file2] ...
+
+# 停止追踪指定文件，但该文件会保留在工作区
+$ git rm --cached [file]
+
+# 改名文件，并且将这个改名放入暂存区
+$ git mv [file-original] [file-renamed]
+
+# 忽略文件或文件夹，在项目根目录下面 添加 .gitignore文件 
+# 只能忽略那些原来没有被track的文件，如果某些文件已经被纳入了版本管理中，则修改.gitignore是无效的
 vim .gitignore
 # 忽略*.o和*.a文件
  *.[oa]
@@ -226,67 +367,77 @@ dbg
     * {ab,bb,cx}：代表ab,bb,cx中任一类型即可
     * [abc]：代表a,b,c中任一字符即可
     * [ ^abc]：代表必须不是a,b,c中任一字符
-
 ```
-------
-# 版本合并(更新)
-```
-// 下载更新到本地
-git fetch [remote-name]
-// 合并到任意分支
-git merge [shortname]
-// 推送本地数据到远程仓库, 如果从分支push 会产生合并请求
-git push [remote-name] [branch-name]
-// 从远程仓库更新合并到本地
-git pull [remote-name] [branch-name]
 
-// 合并一个分支上改动的部分文件到master
+
+
+# 版本合并
+
+```shell
+
+# 合并一个分支上改动的部分文件到master
 git checkeout master
 git checkeout --path branch file
 
-// 签出指定文件
+# 签出指定文件
 git checkout [<options>] [<branch>] -- <file>
-// 从上一次提交中签出指定文件
+# 从上一次提交中签出指定文件
 git checkout -- a.txt
-// 从指定的提交历史中签出指定文件
+# 从指定的提交历史中签出指定文件
 git checkout 830cf95f56ef9a7d6838f6894796dac8385643b7 -- a.txt
-// 从其他分支签出指定文件
+# 从其他分支签出指定文件
 git checkout master -- a.txt
-// 签出某个后缀的文件 或 指定目录
+# 签出某个后缀的文件 或 指定目录
 git checkout -- *.txt
 git checkout -- css/
 
 ```
 ------
 
-# 回退commit
+# 回退撤销
 最后三个版本 HEAD~3包含(HEAD, HEAD^, HEAD~2)
 
-```
-// 本地进行了多次git commit操作，现在想撤销到其中某次Commit
-// soft 回退到某个版本，只回退了commit的信息，不会恢复到index file一级
-// mixed 此为默认方式, 回退到某个版本，只保留源码，回退commit和index信息
-// hard 彻底回退到某个版本，本地的源码也会变为上一个版本的内容
+```shell
+
+# 恢复暂存区的指定文件到工作区
+$ git checkout [file]
+
+# 恢复某个commit的指定文件到暂存区和工作区
+$ git checkout [commit] [file]
+
+# 恢复暂存区的所有文件到工作区
+$ git checkout .
+
+# 重置暂存区的指定文件，与上一次commit保持一致，但工作区不变
+$ git reset [file]
+
+# 重置暂存区与工作区，与上一次commit保持一致
+$ git reset --hard
+
+# 重置当前分支的指针为指定commit，同时重置暂存区，但工作区不变
+$ git reset [commit]
+
+# 重置当前分支的HEAD为指定commit，同时重置暂存区和工作区，与指定commit一致
+$ git reset --hard [commit]
+
+# 重置当前HEAD为指定commit，但保持暂存区和工作区不变
+$ git reset --keep [commit]
+
+# 新建一个commit，用来撤销指定commit
+# 后者的所有变化都将被前者抵消，并且应用到当前分支
+$ git revert [commit]
+
+# 暂时将未提交的变化移除，稍后再移入
+$ git stash
+$ git stash pop
+
+# 除了--hard还是不要用了
 git reset [--soft | --mixed | --hard | --merge | --keep] [-q] [<commit>]
-// 回退到指定版本
-git reset --hard 406b5944e3
 
-// 文件被修改了，但未执行git add操作(working tree内撤销) 
-git checkout fileName 
-git checkout .
 
-// 同时对多个文件执行了git add操作，但本次只想提交其中一部分文件
-git add *
-git status
-git reset HEAD <filename> # 取消暂存
-
-// 文件执行了git add操作，但想撤销对其的修改（index内回滚）
+# 文件执行了git add操作，但想撤销对其的修改（index内回滚）
 git reset HEAD fileName # 取消暂存
 git checkout fileName # 撤销修改
-
-// 修改的文件已被git commit，但想再次修改不再产生新的Commit
-git add sample.txt
-git commit --amend -m "说明" # 修改最后一次提交 
 
 // 修改最近三次提交信息, 删除某次提交, 编辑删除即可
 git rebase -i HEAD~3
@@ -317,24 +468,24 @@ git revert commitID
 ```
 
 # 保存修改
-```
-// 暂存修改, 工作目录恢复到修改前, save [message]
+```shell
+# 暂存修改, 工作目录恢复到修改前, save [message]
 $ git stash
-// 查看暂存修改
+# 查看暂存修改
 git stash list
-// 查看最近一个修改的diff, 
+# 查看最近一个修改的diff, 
 git stash show
-// 取出和删除指定修改
+# 取出和删除指定修改
 git stash apply stash@{2}
 git stash drop stash@{2}
-// 取出最近一个修改
+# 取出最近一个修改
 git stash apply
 
-// 取出并删除最近一个修改
+# 取出并删除最近一个修改
 git stash pop
-// 从暂存区创建一个分支
+# 从暂存区创建一个分支
 $ git stash branch testchanges
-// 删除全部stash
+# 删除全部stash
 git stash clear
 
 ```
