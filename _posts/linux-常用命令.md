@@ -7,7 +7,21 @@ categories: linux
 
 # 系统级计数器
 
+## 系统信息
+
+```shell
+# 查看系统信息，如硬盘
+host-10-19-14-51:/sys/block/vda> cat stat 
+ 7387132  3770038 1127099632 427297720 73091212 35427793 5872626739 1788849144        0 1012238160 2216319780
+
+```
+
+
+
+
+
 ## vmstat
+
 查看整个机器的CPU,内存,IO的使用情况, 如间隔2秒采集3次
 ```
 52_zjdev[/data01/zjgrp/zjdev]%vmstat 2 3
@@ -177,7 +191,18 @@ sar日志保存(-o)
 ------
 # 进程级计数器
 
+## 进程信息
+
+```
+/proc
+```
+
+
+
+
+
 ## top
+
 按一个统计数据排序，显示排名高的进程
 ```
 52_zjdev[/data01/zjgrp/zjdev]%top -u zjv8cs -d 3
@@ -249,13 +274,13 @@ COMMAND: 拉起进程的命令
 ```
 
 ## ps 
-```
+```shell
 [root@zhangbb ~]# ps -o pid,ppid,lwp,comm
   PID  PPID   LWP COMMAND
  4981  4975  4981 bash
  7792  4981  7792 ps
  
-进程状态，显示进程的各种统计信息，包括内存和CPU的使用
+# 进程状态，显示进程的各种统计信息，包括内存和CPU的使用
 host-10-19-14-51:/data01/zjgrp/zjv8cs/sqlite> ps -eLo pid,lwp,pcpu | grep 12567
 12567 12567  0.0
 12567 12568  0.0
