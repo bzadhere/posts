@@ -16,17 +16,99 @@ tags:高服务器编程
 
 ## TCP/IP协议簇
 
+![image-20200810111010725](linux高性能服务器编程/image-20200810111010725.png)
+
+数据链路层：实现了网卡接口的网络驱动程序，以处理数据在物理媒介(以太网)上的传输
+
+网络层：数据包的选路和转发
+
+传输层：为两台主机上的程序提供端到端服务
+
+应用层：负责处理应用程序的逻辑
+
+
+
+TCP协议：为应用层提供可靠的、面向连接的和基于流的服务
+
+UDP协议：与TCP相反，为应用层提供不可靠、无连接和基于数据报的服务
+
+ARP工作原理：主机向所在的网络广播一个ARP请求, 请求包含目标主机的网络地址。此网络上的其他主机收到这个请求，但只有被请求的目标机器会回应一个ARP应答，其中包含自己的物理地址。
+
+```shell
+# 查看ARP缓存
+arp
+
+# DNS服务文件
+/etc/resolv.conf
+
+# 查看DNS
+host -t A www.baidu.com
+```
+
 
 
 ## IP协议详解
 
+![image-20200810112742000](linux高性能服务器编程/image-20200810112742000.png)
+
+IP分片：
+
+```shell
+# MTU 1500, ICMP 头部8个字节, 所以1473 + 8 > 1500 , 可以分片
+51_zjdev[/data01/zjgrp/zjdev]%ping 10.19.14.52 -s 1473
+PING 10.19.14.52 (10.19.14.52) 1473(1501) bytes of data.
+1481 bytes from 10.19.14.52: icmp_seq=1 ttl=64 time=1.08 ms
+1481 bytes from 10.19.14.52: icmp_seq=2 ttl=64 time=0.494 ms
+1481 bytes from 10.19.14.52: icmp_seq=3 ttl=64 time=0.553 ms
+
+51_zjdev[/data01/zjgrp/zjdev]%sudo tcpdump -i eth0 -ntv icmp
+tcpdump: listening on eth0, link-type EN10MB (Ethernet), capture size 65535 bytes
+IP (tos 0x0, ttl 64, id 541, offset 0, flags [+], proto ICMP (1), length 1500)
+    10.19.14.51 > 10.19.14.52: ICMP echo request, id 16156, seq 1, length 1480
+IP (tos 0x0, ttl 64, id 541, offset 1480, flags [none], proto ICMP (1), length 21)
+    10.19.14.51 > 10.19.14.52: ip-proto-1
+
+# 查看MTU
+[root@localhost ~]# ifconfig -a
+enp0s3: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 192.168.1.113  netmask 255.255.255.0  broadcast 192.168.1.255
+```
 
 
 
+IP路由机制：IP完全匹配，匹配网络段，默认路由
+
+IP转发：/etc/sys/net/ipv4/ip_forward ，一般是接收和发送，但也可以转发
+
+重定向：
+
+IPv6头部结构：
+
+![image-20200810141042471](linux高性能服务器编程/image-20200810141042471.png)
 
 ## TCP 协议详解
 
+![image-20200810141250784](linux高性能服务器编程/image-20200810141250784.png)
 
+
+
+TCP头部选项：
+
+连接超时：iptables -I INPUT -p tcp -- syn -i eth0 -j DROP
+
+TCP状态转移：
+
+![image-20200810141623661](linux高性能服务器编程/image-20200810141623661.png)
+
+TIME_WAIT存在原因：可靠的终止TCP链接；保证迟来的TCP报文有足够的时间被识别并被丢弃。
+
+RST复位报文场景：访问不存在的端口，异常终止链接，处理半打开链接。
+
+Nagel算法：在任意时刻，发送的TCP报文在未被确认到达之前不能发送其他报文，避免拥塞。
+
+TCP超时重传：
+
+TCP拥塞控制：慢启动，拥塞避免，快速重传，快速恢复
 
 
 
@@ -597,4 +679,205 @@ noclose: 0 标准输入/输出/错误 重定向到 /dev/null
 ## 高性能服务器框架
 
 ### 服务器模型
+
+异步I/O 立即返回，不论是I/O否阻塞，内核完成I/O操作后通知应用程序。
+同步I/O 向应用程序通知的是就绪事件(I/O阻塞，复用，信号)，而异步I/O通知的是完成事件。
+
+服务器一般处理三种事件：I/O事件，信号事件，定时时间。
+
+![image-20200811095227925](linux高性能服务器编程/image-20200811095227925.png)
+
+### 两种事件处理模式
+
+Reactor模式：主线程监听，可读/可写 事件 放入请求队列，唤醒工作线程处理
+Proactor模式：主线程处理所有I/O操作，通知工作线程读写结果
+
+
+
+### 两种并发编程模式
+
+如果程序是计算密集型，并发编程没有优势。如果程序是I/O密集型，等待I/O线程放弃CPU，其他线程执行。
+
+__半同步/半异步__：同步是指代码按照顺序执行，异步是指程序执行需要系统事件来驱动。
+同步线程处理逻辑，异步线程处理I/O事件。
+异步线程监听请求，派发socket，通知某个工作在同步模式的线程读取并处理。如下图中每个线程都有自己的监听。
+
+![image-20200811100609440](linux高性能服务器编程/image-20200811100609440.png)
+
+
+
+
+
+__领导者/追随者__：多个工作线程轮流，在某一时间点，只有一个领导者，负责监听I/O事件，其他线程则都是追随者，休眠在线程池中等待成为领导者。缺点是一个线程无法管理多个连接。
+
+组件包括：句柄集(HandleSet)，线程集(ThreadSet)，事件处理器(EventHandle)，具体事件处理器(ConcreteEventHanle)
+
+![image-20200811101730144](linux高性能服务器编程/image-20200811101730144.png)
+
+
+
+
+
+
+
+### 有限状态机
+
+逻辑单元内部高效编程方法，一个消息码对应一个逻辑函数。
+
+### 其他高效编程建议
+
+池、数据复制、上下文切换和锁
+
+
+
+## I/O 复用
+
+### select
+
+```c++
+#include <sys/select.h>
+int select(int nfds, fd_set* readfds, fd_set* writefds, fd_set*exceptfds, timeval* timeout);
+
+// nfds 最大描述符的值+1
+// 返回0 没有描述符就绪; 返回-1 失败; 收到信号 立即返回-1 errno EAGAIN
+
+// 设置fd_set
+FD_ZERO( fd_ set* fdset);/* 清除 fdset 的 所有 位*/ 
+FD_SET( int fd, fd_ set* fdset);/* 设置 fdset 的 位 fd*/ 
+FD_CLR( int fd, fd_ set* fdset);/* 清除 fdset 的 位 fd*/ 
+int FD_ISSET( int fd, fd_ set* fdset); /* 测试 fdset 的 位 fd 是否 被 设置*/
+
+// 0 立即返回， NULL 一直阻塞直到有描述符就绪
+struct timeval { 
+long tv_ sec;	/* 秒数*/ 
+long tv_ usec;	/* 微秒数*/
+}
+```
+
+__文件描述符就绪条件__
+
+可读：
+
+> 1 内核读缓冲区可读数据大于或等于其低水位标记SO_RCVLOWAT
+> 2 对端关闭连接，该socket的读返回0
+> 3 监听socket上有新的连接请求
+> 4 socket上有未处理的错误。用getsockopt来读取和清除该错误
+
+可写：
+
+> 1 内核写缓冲区空闲数据大于或等于其低水位标记SO_SNDLOWAT
+> 2 socket写操作关闭，对该被关闭的socket执行写操作会触发一个SIGPIPE信号
+> 3 socket使用非阻塞connect 连接成功或失败(超时)之后  ，其中errno=EINPROGRESS 正在建立连接
+> 4 socket上有未处理的错误。用getsockopt来读取和清除该错误
+
+```c++
+
+int error= 0; 
+socklen_ t length= sizeof( error); 
+/*调用 getsockopt 来 获取 并 清除 sockfd 上 的 错误*/ 
+if( getsockopt( sockfd, SOL_SOCKET, SO_ERROR, &error, &length) ＜ 0)
+{
+}
+```
+
+
+
+异常：
+
+> 外带数据
+
+
+
+### poll
+
+```c++
+#include <poll.h>
+int poll(struct pollfd *fds, nfds_t nfds, int timeout);
+
+// fds 是一个pollfd类型的数组
+struct pollfd
+{
+    int fd;	/* 文件描述符*/
+    short events; /* 注册事件*/
+    short revents; /* 就绪事件，由内核填充*/
+}
+// nfds 个数
+// timeout -1 一直阻塞，0 立即返回
+// 返回值同select
+```
+
+
+
+### epoll
+
+```c++
+#include <sys/epoll.h>
+int epoll_create(int size);
+// 创建内核事件表
+
+int epoll_ctl(int epfd, in op, int fd, epoll_event* event);
+// 操作内核事件表 
+// op = EPOLL_CTL_ADD, EPOLL_CTL_DEL, EPOLL_CTL_MOD
+struct epoll_event
+{
+    uint32_t events; /* 事件 EPOLLIN EPOLLOUT EPOLLET EPOLLONESHOT*/
+    epoll_data_t data; /* 用户数据 常用的是data.fd */
+}
+
+
+int epoll_wait(int epfd, struct epoll_event* events, int maxevents, int timeout);
+// 等待就绪, events 是数组
+```
+
+
+
+LT 水平触发，默认方式，事件不处理下次还会触发；
+
+ET 边缘触发，事件必须被处理，下次不会触发。
+
+
+
+### 区别比较
+
+|                                  | select                                                       | poll                                                         | epoll                                                        |
+| -------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 事件集合                         | 3个参数分别传入感兴趣的可读、可写、异常等事件，内核修改反馈其中就绪事件。每次调用都需要重置这3个参数 | 统一处理所有时间类型，因此只需要一个参数。用户通过pollfd.events传入感兴趣事件，内核通过修改pollfd.revents反馈其中就绪的事件 | 内核通过一个事件表管理用户感兴趣的事件。因此epoll_wait时无需反复传入用户感兴趣的事件。epoll_wait第二个参数events仅用来反馈就绪的事件 |
+| 应用索引就绪文件描述符时间复杂度 | O(n)                                                         | O(n)                                                         | O(1)                                                         |
+| 支持最大文件描述符数量           | 一般限制是1024                                               | 65535                                                        | 65535                                                        |
+| 工作模式                         | LT                                                           | LT                                                           | LT/ET                                                        |
+| 内核实现和工作效率               | 采用轮询方式来检测就绪事件，O(n)                             | 轮询，O(n)                                                   | 采用回调方式来检测就绪事件，O(1)                             |
+
+
+
+### 同时处理TCP和UDP
+
+tcpfd和udpfd可以同时绑定到一个端口，把两个fd都加到事件列表中可以同时监听
+
+
+
+## 信号
+
+
+
+
+
+## 定时器
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
