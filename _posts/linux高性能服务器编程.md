@@ -16,7 +16,7 @@ tags:高服务器编程
 
 ## TCP/IP协议簇
 
-![image-20200810111010725](linux高性能服务器编程/image-20200810111010725.png)
+<img src="linux高性能服务器编程/image-20200810111010725.png" alt="image-20200810111010725" style="zoom:67%;" />
 
 数据链路层：实现了网卡接口的网络驱动程序，以处理数据在物理媒介(以太网)上的传输
 
@@ -49,7 +49,7 @@ host -t A www.baidu.com
 
 ## IP协议详解
 
-![image-20200810112742000](linux高性能服务器编程/image-20200810112742000.png)
+<img src="linux高性能服务器编程/image-20200810112742000.png" alt="image-20200810112742000" style="zoom:67%;" />
 
 IP分片：
 
@@ -84,11 +84,11 @@ IP转发：/etc/sys/net/ipv4/ip_forward ，一般是接收和发送，但也可�
 
 IPv6头部结构：
 
-![image-20200810141042471](linux高性能服务器编程/image-20200810141042471.png)
+<img src="linux高性能服务器编程/image-20200810141042471.png" alt="image-20200810141042471" style="zoom:67%;" />
 
 ## TCP 协议详解
 
-![image-20200810141250784](linux高性能服务器编程/image-20200810141250784.png)
+<img src="linux高性能服务器编程/image-20200810141250784.png" alt="image-20200810141250784" style="zoom: 67%;" />
 
 
 
@@ -98,7 +98,7 @@ TCP头部选项：
 
 TCP状态转移：
 
-![image-20200810141623661](linux高性能服务器编程/image-20200810141623661.png)
+<img src="linux高性能服务器编程/image-20200810141623661.png" alt="image-20200810141623661" style="zoom: 67%;" />
 
 TIME_WAIT存在原因：可靠的终止TCP链接；保证迟来的TCP报文有足够的时间被识别并被丢弃。
 
@@ -338,7 +338,7 @@ struct iovec {
 
 ```
 
-![image-20200702100417447](linux高性能服务器编程/image-20200702100417447.png)
+<img src="linux高性能服务器编程/image-20200702100417447.png" alt="image-20200702100417447" style="zoom:80%;" />
 
 ### 带外标记
 
@@ -685,7 +685,7 @@ noclose: 0 标准输入/输出/错误 重定向到 /dev/null
 
 服务器一般处理三种事件：I/O事件，信号事件，定时时间。
 
-![image-20200811095227925](linux高性能服务器编程/image-20200811095227925.png)
+<img src="linux高性能服务器编程/image-20200811095227925.png" alt="image-20200811095227925" style="zoom:80%;" />
 
 ### 两种事件处理模式
 
@@ -702,7 +702,7 @@ __半同步/半异步__：同步是指代码按照顺序执行，异步是指程
 同步线程处理逻辑，异步线程处理I/O事件。
 异步线程监听请求，派发socket，通知某个工作在同步模式的线程读取并处理。如下图中每个线程都有自己的监听。
 
-![image-20200811100609440](linux高性能服务器编程/image-20200811100609440.png)
+<img src="linux高性能服务器编程/image-20200811100609440.png" alt="image-20200811100609440" style="zoom:80%;" />
 
 
 
@@ -712,7 +712,7 @@ __领导者/追随者__：多个工作线程轮流，在某一时间点，只有
 
 组件包括：句柄集(HandleSet)，线程集(ThreadSet)，事件处理器(EventHandle)，具体事件处理器(ConcreteEventHanle)
 
-![image-20200811101730144](linux高性能服务器编程/image-20200811101730144.png)
+<img src="linux高性能服务器编程/image-20200811101730144.png" alt="image-20200811101730144" style="zoom: 80%;" />
 
 
 
@@ -857,12 +857,437 @@ tcpfd和udpfd可以同时绑定到一个端口，把两个fd都加到事件列�
 
 ## 信号
 
+### 发送和处理
 
+```c++
+#include <sys/types.h>
+#include <signal.h>
+int kill(pid_t pid, int sig);
+
+// pid>0 发给指定进程, =0 发给所在进程组内其他成员, =-1 发给除init外所有进程, <-1 发给进程组中所有成员
+
+// 信号默认处理：结束进程、忽略信号、结束进程并生成core文件、暂停进程、继续进程
+```
+
+
+
+### 信号处理函数
+
+```c++
+// 信号处理
+#include <bits/signum.h>
+#define SIG_DFL((sighandler_ t) 0) // 恢复某个信号的默认行为
+#define SIG_IGN((sighandler_ t) 1) // 屏蔽某个信号
+
+// 信号处理自定义
+#include <signal.h>
+typedef void (*sighandler_t)(int)； 
+sighandler_t signal(int signum, sighandler_t handler)); 
+
+signal(SIGINT, SIG_DFL); // 恢复信号默认处理
+
+int sigaction(int sig,const struct sigaction *act,struct sigaction *oldact));
+struct sigaction
+{
+    void     (*sa_handler)(int);  // 函数指针, 类似signal处理，相当于兼容
+    void     (*sa_sigaction)(int, siginfo_t *, void *); // 包含SA_SIGINFO时用这个
+    sigset_t  sa_mask; 	// 信号集，信号函数执行期间屏蔽某个信号，正在处理的信号不会再发生
+    int       sa_flags; // 值的“按位或”组合
+    void     (*sa_restorer)(void); // 废弃
+};
+
+// SA_RESTART：使被信号打断的系统调用自动重新发起
+// SA_NOCLDSTOP：sig参数是 SIGCHLD，子进程暂停不会生成 SIGCHLD 信号
+// SA_NOCLDWAIT：sig参数是 SIGCHLD，子进程结束不会产生僵尸进程
+
+// SA_RESETHAND：信号处理之后重新设置为默认的处理方式
+// SA_NODEFER：使对信号的屏蔽无效，即在信号处理函数执行期间仍能发出这个信号
+// SA_SIGINFO：使用 sa_sigaction 成员而不是 sa_handler 作为信号处理函数
+
+```
+
+
+
+### 信号集
+
+```c++
+// 一组信号
+#include <signal.h>
+int sigemptyset(sigset_t *set); // 清空信号集
+int sigfillset(sigset_t *set); // 
+int sigaddset(sigset_t *set, int signum); // 增加信号
+int sigdelset(sigset_t *set, int signum); // 删除信号
+int sigismember(const sigset_t *set, int signum); // 判断信号是否在信号集中
+
+int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
+// 设置或查看信号集掩码
+// how： SIG_BLOCK 阻塞 SIG_UNBLOCK 非阻塞，SIG_SETMASK 直接set设置为掩码
+// set: NULL oldset返回信号集
+
+int sigpending(sigset_t *set); //读取当前进程的未觉信号集 
+
+int sigsuspend(const sigset_t *mask); // 先设置信号集，再挂起进程，直到信号函数处理完才返回-1
+// 如果接收到信号终止了程序，sigsuspend就不会返回
+// 如果接收到的信号没有终止程序，sigsuspend就返回-1，并将errno设置为EINTR
+
+int pause(void); // 进程挂起，直到收到信号函数执行完，才返回-1
+```
+
+```markdown
+man帮助说明：
+
+Signal mask and pending signals
+       A signal may be blocked, which means that it will not be delivered
+       until it is later unblocked.  Between the time when it is generated
+       and when it is delivered a signal is said to be pending.
+
+       Each thread in a process has an independent signal mask, which
+       indicates the set of signals that the thread is currently blocking.
+       A thread can manipulate its signal mask using pthread_sigmask(3).  In
+       a traditional single-threaded application, sigprocmask(2) can be used
+       to manipulate the signal mask.
+
+执行信号的处理动作称为信号递达（Delivery），信号从产生到递达之间的状态，称为信号未决（Pending）。进程可以选择阻塞（Block）某个信号。
+被阻塞的信号产生时将保持在未决状态，直到进程解除对此信号的阻塞，才执行递达的动作。
+
+注意，阻塞和忽略是不同的，只要信号被阻塞就不会递达，而忽略是在递达之后可选的一种处理动作。每个进程都有一个用来描述哪些信号递送到进程时将被阻塞的信号集，该信号集中的所有信号在递送到进程后都将被阻塞。
+
+特别提醒：如果一个信号被进程阻塞，它就不会传递给进程，但会停留在待处理状态，当进程解除对待处理信号的阻塞时，待处理信号就会立刻被处理。可靠信号解除阻塞后会排队被处理。
+```
+
+
+
+### 统一事件源
+
+信号处理函数执行和主循环是两条不同的执行路线。信号对应逻辑尽量放在主循环中，信号处理函数通过写管道，用epoll监听同I/O事件一样被处理。
+
+
+
+### 网络编程相关信号
+
+SIGHUP: 有终端的程序挂起；对后台程序来说强制重读配置文件，如xinetd
+
+SIGPIPE: 往一个读端关闭的管道或者socket写数据会引发该信号, errno=EPIPE。
+send函数的MSG_NOSIGNAL禁止该信号，可以通过errno判断对端读是否关闭。
+
+```
+以poll为例，当管道的读端关闭时，写端文件描述符上的POLLHUP事件将被触发；当socket连接被对方关闭时，socket上的POLLRDHUP事件将被触发。
+```
+
+
+
+SIGURG: 内核通知应用程序的外带数据到达两种方式，一个是select的异常，还有是SIGURG信号
 
 
 
 ## 定时器
 
+### socket选项
+
+SO_RCVTIMEO和SO_SNDTIMEO 设置接收和发送超时时间
+
+send/sendmsg/recv/recvmsg/accept/connect 
+
+```c++
+struct timeval timeout;
+timeout.tv_sec= time; 
+timeout.tv_usec= 0; 
+socklen_t len= sizeof(timeout); 
+ret= setsockopt(sockfd, SOL_SOCKET, SO_ SNDTIMEO, &timeout, len);
+```
+
+
+
+### SIGALARM信号
+
+基于升序链表的定时器：节点包含超时时间，用户数据，回调函数，指针等
+
+处理非活动连接：KEEPALIVE或程序自己做
+
+
+
+### I/O复用函数定时
+
+略
+
+### 高性能定时器
+
+__时间轮__：插入删除O(1)，执行定时O(n), 固定频率循环
+
+<img src="linux高性能服务器编程/image-20200812152727623.png" alt="image-20200812152727623" style="zoom:50%;" />
+
+__时间堆__: 以最小超时值作为tick，依次遍历
+
+
+
+<img src="linux高性能服务器编程/image-20200812154702679.png" alt="image-20200812154702679" style="zoom:50%;" />
+
+
+
+<img src="linux高性能服务器编程/image-20200812154743025.png" alt="image-20200812154743025" style="zoom:50%;" />
+
+数组如何实现？
+
+
+
+## 多进程编程
+
+### fork
+
+```c++
+#include <sys/types.h>
+#include <unistd.h>
+
+pid_t fork(void);
+// 返回两次, 父进程中返回子进程的pid，子进程中返回0
+```
+
+子进程的代码和父进程完全相同，子进程会(写时复制)复制父进程的 堆数据、栈数据、静态数据。文件描述符/工作目录引用计数会+1。
+
+### exec
+
+子进程需要执行其他程序，替换当前进程映像
+
+```c++
+#include <unistd.h>
+
+extern char** environ; 
+int execl( const char* path, const char* arg,...); 
+int execlp( const char* file, const char* arg,...); 
+int execle( const char* path, const char* arg,..., char* const envp[]); 
+int execv( const char* path, char* const argv[]); 
+int execvp( const char* file, char* const argv[]); 
+int execve( const char* path, char* const argv[], char* const envp[]);
+// path 完整的路径 file 可执行文件 arg 入参 envp 环境变量
+// 一般不返回，出错时才返回-1
+```
+
+
+
+### 僵尸进程
+
+僵尸进程：父进程结束或者异常终止，而子进程继续运行。由init进程接管，僵尸进程会一直占据内核资源，需要回收。
+
+```c++
+#include <sys/wait.h>
+
+pid_t wait(int *status);  // 等待任意一个子进程结束
+pit_t waitpid(pid_t pid,int *status,int options); // 等待指定或任意子进程结束
+// 调用前子进程已经结束返回0，正常结束返回pid
+
+// 子进程结束会发生 SIGCHLD，waitpid 最好是在子进程退出后调用
+static void handle_ child(int sig)
+{
+    pid_ t pid;
+    int stat;
+    while ((pid = waitpid(-1, ＆ stat, WNOHANG)) ＞ 0)
+    { /*对 结束 的 子 进程 进行 善后处理*/
+    }
+}
+```
+
+
+
+### 管道
+
+fork后fd[2]两个文件描述符保持打开，父子进程必须一个关闭fd[0]，一个关闭fd[1]
+
+
+
+<img src="linux高性能服务器编程/image-20200814101413653.png" alt="image-20200814101413653" style="zoom:50%;" />
+
+### 信号量
+
+信号量取值可以是任何自然数，一般用二进制
+
+<img src="linux高性能服务器编程/image-20200814102402662.png" alt="image-20200814102402662" style="zoom:50%;" />
+
+```c++
+#include <sys/types.h>
+#include <sys/ipc.h>
+/* desc: 文件名到键值映射 
+*  param: pathname 路径 proj 任意取1～255
+*  return: 成功返回IPC键值
+*/
+key_t ftok (char*pathname, char proj)
+
+#include <sys/sem.h >
+/*
+* desc: 创建新的信号量集 或 获取已经存在的信号量集
+* param: key 键值 , 取IPC_PRIVATE(名字取IPC_NEW更合适)直接创建
+		num_sems 数量 
+		sem_flags IPC_CREATE|IPC_EXCL 已存在返回-1 类似open的mode参数
+* return: 成功返回 新建的或已存在 正整数信号量集标识符 引用, 识别返回-1 errno
+*/
+int semget(key_t key, int num_sems, int sem_flags);
+
+
+
+/* 系统为每个IPC对象保存的结构体 */
+struct ipc_perm {
+key_t   key ;          /* 此IPC对象的key键 */
+uid_t   uid ;          /* 此IPC对象用户ID */
+gid_t   gid ;          /* 此IPC对象组ID */
+uid_t   cuid ;         /* IPC对象创建进程的有效用户ID */
+gid_t   cgid ;         /* IPC对象创建进程的有效组ID */
+mode_t   mode ;        /* 此IPC的读写权限 0666*/
+ulong_t  seq ;         /* IPC对象的序列号 */
+} ;
+
+/*
+* desc: 
+* param: sem_id 信号量集标识符
+		 sem_ops 数组
+		 struct sembuf
+		 {
+		 	short sem_num; 	// 一组信号量, 下标从0开始
+		 	short sem_op; 	// 小于0如-1 期望获得, 大于0如+1 释放，等于0 等待信号量值变0
+		 	short sem_flg; 	// 一般是SEM_UNDO 系统跟踪信号在进程结束时释放
+		 					// IPC_NOWAIT 等待信号量操作时立即返回
+		 }
+		 num_sem_ops 数组个数
+* return: 成功返回0，失败返回-1
+*/
+int semop( int sem_id, struct sembuf* sem_ops, size_t num_sem_ops);
+
+/*
+* desc: 释放
+* param: sem_id: 信号量集标识符
+		 sem_num: 信号量索引下标
+		 command: SETVAL 设置信号量值 GETVAL 获取信号量值 IPC_RMID 删除信号量
+* return: 
+*/
+int semctl(int sem_id, int sem_num, int command, ...);
+
+```
+
+
+
+### 共享内存
+
+
+
+```c++
+#include <sys/shm.h>
+
+/*
+* desc: 创建 或 获取 一段共享内存
+* param: key 键值 size 多少字节 shmflg 一般用(IPC_CREATE|IPC_EXCL|0666) 
+* return: 成功返回正整数值 失败返回-1
+*/
+int shmget(key_t key, size_t size, int shmflg);
+
+/*
+* desc: 
+* param: shm_id 共享内存标识符 shm_addr NULL 系统分配 或 指定共享内存关联到进程哪块地址 
+		 shmflg SHM_RDONLY 只读, 默认可读写 SHM_REMAP 重新关联一段共享内存
+* return: 成功返回0 失败返回-1
+*/
+int shmat(int shm_id, const void* shm_addr, int shmflg);
+int shmdt(cosnt void* shm_addr);
+
+
+/*
+* desc: 释放 共享内存
+* param: shm_id 共享内存标识符, command IPC_RMID 用用就好了, buf NULL
+* return: 0 sucess , -1 failed
+*/
+int shmctl(int shm_id, int command, struct shmid_ds *buf);
+
+
+// 共享内存POSIX方法, 略.....
+```
+
+
+
+### 消息队列
+
+
+
+```c++
+#include <sys/msg.h>
+
+/*
+* desc: 创建 或 获取 一个消息队列
+* param: key 键值, msgflg 同sem_flags
+* return: >0 sucess, -1 failed
+*/
+int msgget(key_t key, int msgflg);
+
+/*
+* desc: 添加一条消息到消息队列中
+* param: msqid 消息队列标识符 msg_ptr 必须是 msgbuf 结构
+		 struct msgbuf{
+		 	long mtype;		 // 消息类型
+		 	char mtext[512]; // 内容
+		 }
+		 msg_sz mtext 长度, 0 表示无内容
+		 msgflg IPC_NOWAIT 队列满的时候立即返回，默认阻塞
+* return: 0 sucess, -1 failed
+*/
+int msgsnd(int msqid, const void* msg_ptr, size_t msg_sz, int msgflg);
+
+/*
+* desc: 从队列中读取一个消息
+* param: msqid 消息队列标识符, msg_ptr msgbuf, msg_sz 消息长度, 
+		 mtype =0 取队列中第一个消息, >0 取队列中第一个是消息号的, <0 绝对值小于该消息号 
+		 msgflg IPC_NOWAIT 队列空时立即返回
+* return: 0 sucess, -1 failed
+*/
+int msgrcv(int msqid, const void* msg_ptr, size_t msg_sz, long int mtype, int msgflg);
+
+
+
+```
+
+
+
+
+
+### System V IPC 区别
+
+|          | 头文件    | 创建   | 控制   | 操作          |
+| -------- | --------- | ------ | ------ | ------------- |
+| 信号量   | sys/sem.h | semget | semctl | semop         |
+| 共享内存 | sys/shm.h | shmget | shmctl | shmat/shmdt   |
+| 消息队列 | sys/msg.h | msgget | msgctl | msgrcv/msgsnd |
+
+
+
+### IPC命令
+
+```shell
+host-10-19-14-51:/data01/zjgrp/zjv8cs> ipcs
+
+--------- 消息队列 -----------
+键         msqid      拥有者     权限       已用字节数   消息        
+0x0000bff0 4751360    zjv8cs2    666        0            0           
+0x000022b8 4521985    ocs_ruler  666        0            0           
+
+------------ 共享内存段 --------------
+键         shmid      拥有者     权限       字节       连接数     状态        
+0x012285cf 51118080   billing    666        1761104    0                       
+0x0100cd0c 49938433   zjv8cs     666        1761104    44  
+
+--------- 信号量数组 -----------
+键         semid      拥有者     权限       nsems     
+0x010285f1 2424832    billing    666        100       
+0x0108cd24 2326529    zjv8cs     666        10
+
+# 删除ipcrm
+```
+
+
+
+
+
+## 多线程编程
+
+
+
+
+
+## 进程池和线程池
 
 
 
@@ -870,6 +1295,9 @@ tcpfd和udpfd可以同时绑定到一个端口，把两个fd都加到事件列�
 
 
 
+
+
+## 系统检测工具
 
 
 

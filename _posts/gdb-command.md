@@ -245,6 +245,11 @@ $ gdb -tty /dev/pts/2 ./a.out
 # 多进程/线程
 
 ```
+// 查看多少个进程
+(gdb) info inferiors
+  Num  Description       Executable        
+* 1    process 6070      /data01/zjgrp/zjdev/ob_rel/bin/sframe.2.3.0.907313 
+
 // 只允许一个线程运行, 忘记的话help set
 (gdb) set scheduler-locking on
 
