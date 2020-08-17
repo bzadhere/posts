@@ -1283,7 +1283,103 @@ host-10-19-14-51:/data01/zjgrp/zjv8cs> ipcs
 
 ## 多线程编程
 
+### 线程概述
 
+线程的实现方式有三种模式：完全在用户空间调度、完全由内核调度、双层调度
+
+线程库：基本都用NPTL
+
+```shell
+[root@localhost ~]# getconf GNU_LIBPTHREAD_VERSION
+NPTL 2.17
+
+# 用户能创建最大线程数
+51_zjdev[/data01/zjgrp/zjdev]%cat /proc/sys/kernel/threads-max 
+1032676
+```
+
+
+
+ ### 线程相关函数
+
+```c++
+#include <pthread.h>
+
+/*
+* desc: 线程创建
+* param: thread 整数
+* 	attr 线程属性
+*	start 线程开始函数
+*	arg	开始函数入参
+*	return: 0 sucess, 
+*/
+int pthread_create(thread_t* thread, pthread_attr_t* attr, void*(*start)(void*),void*arg );
+
+/*
+* desc: 线程干净、安全的退出，函数结束时调用
+* param: retval 线程回收者退出信息, 不返回给调用者
+* return: 永远不会失败
+*/
+void pthread_exit(void* retval);
+
+/*
+* desc: 回收线程, 进程中所有线程都可以调用
+* param: thread 线程标识符, retval 目标线程返回退出的信息
+* return: 一直阻塞, 直到线程结束
+*/
+int pthread_join(pthread_t thread, void** retval);
+
+/*
+* desc: 取消(终止)一个线程, 发出cancel信号
+*/
+int pthread_cancel(pthread_t thread);
+
+/*
+* desc: 取消信号处理方式, PTHREAD_CANCEL_ENABLE(默认响应) / PTHREAD_CANCEL_DISABLE(忽略)
+*/
+int pthread_setcancelstate(int state, int *oldstate);
+
+/*
+* desc: 取消信号响应方式, PTHREAD_CANCEL_DEFFERED 下一个取消点退出	 
+*	PTHREAD_CANCEL_ASYCHRONOUS 立即退出
+*/
+int pthread_setcanceltype(int type, int *oldtype);
+
+/*
+* desc: 设置取消点; 检查cancel状态, 是就退出, 不是就立即返回
+*/
+void pthread_testcancel(void)
+```
+
+
+
+### 互斥锁
+
+```c++
+#include <pthread.h>
+int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *mutexattr);
+int pthread_mutex_destroy(pthread_mutex_t *mutex);
+int pthread_mutex_lock(pthread_mutex_t *mutex);
+int pthread_mutex_trylock(pthread_mutex_t *mutex);
+int pthread_mutex_unlock(pthread_mutex_t *mutex);
+```
+
+
+
+### 条件变量
+
+```c++
+int pthread_cond_init(pthread_cond_t *cond,pthread_condattr_t *cond_attr);     
+int pthread_cond_wait(pthread_cond_t *cond,pthread_mutex_t *mutex);
+int pthread_cond_timewait(pthread_cond_t *cond,pthread_mutex *mutex,const timespec *abstime);
+int pthread_cond_destroy(pthread_cond_t *cond);  
+int pthread_cond_signal(pthread_cond_t *cond);
+int pthread_cond_broadcast(pthread_cond_t *cond);
+```
+
+[队列样例](https://blog.csdn.net/e891377/article/details/107954024)
+
+[signal 和 broadcast 区别](https://pubs.opengroup.org/onlinepubs/009695399/functions/pthread_cond_broadcast.html)
 
 
 
