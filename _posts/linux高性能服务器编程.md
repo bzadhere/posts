@@ -1,7 +1,8 @@
 ---
 title: linux高性能服务器编程
 date: 2020-07-01 14:19:15
-tags:高服务器编程
+tags: 高服务器编程
+categories: 读书笔记
 ---
 
 
@@ -1370,16 +1371,82 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex);
 
 ```c++
 int pthread_cond_init(pthread_cond_t *cond,pthread_condattr_t *cond_attr);     
-int pthread_cond_wait(pthread_cond_t *cond,pthread_mutex_t *mutex);
+int pthread_cond_wait(pthread_cond_t *cond,pthread_mutex_t *mutex); // 加入等待队列
 int pthread_cond_timewait(pthread_cond_t *cond,pthread_mutex *mutex,const timespec *abstime);
 int pthread_cond_destroy(pthread_cond_t *cond);  
-int pthread_cond_signal(pthread_cond_t *cond);
-int pthread_cond_broadcast(pthread_cond_t *cond);
+int pthread_cond_signal(pthread_cond_t *cond); // 唤醒一个wait
+int pthread_cond_broadcast(pthread_cond_t *cond); // 唤醒全部wait，一个一个唤醒 
+
+// 部分源码, 注意cond 里面有 value 和 mutex
+pthread_cond_wait(mutex, cond):
+    value = cond->value; /* 1 */
+    pthread_mutex_unlock(mutex); /* 2 */
+    pthread_mutex_lock(cond->mutex); /* 10 */
+    if (value == cond->value) { /* 11 */
+        me->next_cond = cond->waiter;
+        cond->waiter = me;
+        pthread_mutex_unlock(cond->mutex);
+        unable_to_run(me);
+    } else
+        pthread_mutex_unlock(cond->mutex); /* 12 */
+    pthread_mutex_lock(mutex); /* 13 */
+
+
+pthread_cond_signal(cond):
+    pthread_mutex_lock(cond->mutex); /* 3 */
+    cond->value++; /* 4 */
+    if (cond->waiter) { /* 5 */
+        sleeper = cond->waiter; /* 6 */
+        cond->waiter = sleeper->next_cond; /* 7 */
+        able_to_run(sleeper); /* 8 */
+    }
+    pthread_mutex_unlock(cond->mutex); /* 9 */
 ```
+
+
 
 [队列样例](https://blog.csdn.net/e891377/article/details/107954024)
 
 [signal 和 broadcast 区别](https://pubs.opengroup.org/onlinepubs/009695399/functions/pthread_cond_broadcast.html)
+
+虚假唤醒：一个pthread_cond_signal唤醒了多个pthread_cond_wait(正常唤醒一个)
+
+原因：系统中断，进程收到信号后，wait, read, recv 立即返回，errno为EINTR
+			应用层问题，没有循环pthread_cond_wait
+
+```c++
+// thread1
+lock	/*6*/
+consume	/*7*/
+unlock	/*8*/
+// thread2
+lock	
+	if(empty) pthread_cond_wait	/*1*/
+consume	/*9  此时队列为空，不能消费了*/
+unlock
+// thread3
+lock                /*2*/
+producer			/*3*/
+pthread_cond_signal /*4*/
+unlocak				/*5*/
+        
+// wait 和 wait 之间 错过了signal， 白白等待signal. 优化用while判断
+// thread1
+lock	/*6*/
+consume	/*7*/
+unlock	/*8*/
+// thread2
+lock	
+	while(empty) pthread_cond_wait	/*1, 9 此时队列被其他线程消费成空，继续等待*/
+consume	
+unlock
+// thread3
+lock                /*2*/
+producer			/*3*/
+pthread_cond_signal /*4*/
+unlocak				/*5*/
+        
+```
 
 
 
@@ -1396,6 +1463,19 @@ int pthread_cond_broadcast(pthread_cond_t *cond);
 ## 系统检测工具
 
 
+
+```shell
+# 查看系统全部内核参数
+[root@localhost ~]# sysctl -a
+
+# /proc/sys/fs
+
+
+# /proc/sys/net
+
+
+
+```
 
 
 
