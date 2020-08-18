@@ -1,13 +1,9 @@
+---
 title: git操作命令
 date: 2019-08-14 09:44:48
-tags:
+tags: git
 categories: tools
-
-
-
-# 沉浸式学习Git
-
-[参考地址]( http://igit.linuxtoy.org/index.html )
+---
 
 
 
