@@ -1479,9 +1479,20 @@ unlocak				/*5*/
 
 
 
+## socket 性能优化
 
 
 
+[优化技巧](https://www.ibm.com/developerworks/cn/linux/l-hisock.html)
+
+1. 关闭Nagle算法，减少传输延时
+2. 设置读写缓冲区
+3. 内核参数优化
+4. 设置巨帧(发送缓冲区和MTU)
 
 
+
+## boost 异步I/O
+
+了解下
 
