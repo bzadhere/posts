@@ -196,7 +196,7 @@ cnt: 存储单元大小，可用宏定义
 ### 创建socket
 
 ```c++
-#include <sys/type.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 
 int socket(int domain, int type, int protocol);
@@ -210,7 +210,7 @@ return: fd 成功, -1 失败
 ### 命名socket
 
 ```c++
-#include <sys/type.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 
 int bind(int sockfd, const struct sockaddr* my_addr, socklen_t addrlen);
@@ -222,7 +222,7 @@ return: 0 成功, 1 失败
 ### 监听socket
 
 ```c++
-#include <sys/type.h>
+#include <sys/types.h>
 #incude <sys/socket.h>
 
 int listen(int socketfd, int backlog);
@@ -235,7 +235,7 @@ return: 0 成功 -1 失败
 ### 接受连接
 
 ```c++
-#include <sys/type.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 
 int accept(int sockfd, struct sockaddr* addr, socklen_t* addrlen );
@@ -251,7 +251,7 @@ desc: 从监听队列(半连接队列)中取出fd
 ### 发起连接
 
 ```c++
-#include <sys/type.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 
 int connect(int sockfd, struct sockaddr* serv_addr, socklen_t len);
@@ -291,7 +291,7 @@ return: 0 成功, -1 失败
 ```c++
 // ---------------------
 // TCP数据读写专用函数-----
-#include <sys/type.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 
 int recv(int sockfd, void* buf, size_t len, int flags);
@@ -305,7 +305,7 @@ return: -1 失败
     
 // ---------------------
 // UDP数据读写专用函数-----
-#inlucde <sys/type.h>
+#inlucde <sys/types.h>
 #include <sys/socket.h>
     
 int recvfrom(int sockfd, void* buf, size_t len, int flags, struct sockaddr* src_addr, socklen_t* addrlen);
@@ -569,7 +569,7 @@ int setnonblocking( int fd)
 { 
 	int old_ option= fcntl( fd, F_GETFL);
 	int new_ option= old_option| O_NONBLOCK;
-	fcntl( fd, F_SETFL, new_ option); 
+	fcntl( fd, F_SETFL, new_option); 
 	return old_ option;
 }
 ```
@@ -743,10 +743,10 @@ int select(int nfds, fd_set* readfds, fd_set* writefds, fd_set*exceptfds, timeva
 // 返回0 没有描述符就绪; 返回-1 失败; 收到信号 立即返回-1 errno EAGAIN
 
 // 设置fd_set
-FD_ZERO( fd_ set* fdset);/* 清除 fdset 的 所有 位*/ 
-FD_SET( int fd, fd_ set* fdset);/* 设置 fdset 的 位 fd*/ 
-FD_CLR( int fd, fd_ set* fdset);/* 清除 fdset 的 位 fd*/ 
-int FD_ISSET( int fd, fd_ set* fdset); /* 测试 fdset 的 位 fd 是否 被 设置*/
+FD_ZERO( fd_set* fdset);/* 清除 fdset 的 所有 位*/ 
+FD_SET( int fd, fd_set* fdset);/* 设置 fdset 的 位 fd*/ 
+FD_CLR( int fd, fd_set* fdset);/* 清除 fdset 的 位 fd*/ 
+int FD_ISSET( int fd, fd_set* fdset); /* 测试 fdset 的 位 fd 是否 被 设置*/
 
 // 0 立即返回， NULL 一直阻塞直到有描述符就绪
 struct timeval { 

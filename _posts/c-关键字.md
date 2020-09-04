@@ -262,3 +262,21 @@ typedef创建了存在类型的别名，而typename告诉编译器 std::vector<T
 ```
 typedef typename std::vector<T>::size_type size_type;
 ```
+
+
+
+# export
+
+当实例化一个模板时，编译器必须看到模板确切的定义，而不仅仅是它的声明。因此模板定义一般放在头文件中，关键字export可以在cpp文件中定义，但需要编译器支持。
+
+```c++
+// output.h - 声明头文件
+template<class T> void output (const T& t);
+
+// out.cpp - 定义代码文件
+#include <****>
+export template<class T> void output (const T& t) {std::cerr << t;}
+
+
+```
+
