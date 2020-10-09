@@ -2,6 +2,7 @@
 title: pmp 考试
 date: 2020-08-03 08:36:19
 tags:
+categories: 读书笔记
 ---
 
 

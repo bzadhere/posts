@@ -2,7 +2,7 @@
 title: virtualbox网络设置
 date: 2019-02-25 19:27:27
 tags:
-categories: linux
+categories: 软件安装
 ---
 
 

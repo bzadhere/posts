@@ -1,9 +1,12 @@
-﻿---
-title: Big-O
-date: 2018-11-26 09:42:22
-tags:
-categories: 数据结构和算法
 ---
+ title: Big-O
+ date: 2018-11-26 09:42:22
+ tags:
+ categories: 
+
+---------------
+
+
 
 ![](Big-O/Big-O.png)
 

@@ -2,7 +2,7 @@
 title: github项目索引
 date: 2019-05-29 00:47:38
 tags:
-categories: 3rd
+categories: 面试
 ---
 
 [interview](https://github.com/huihut/interview)

@@ -2,6 +2,7 @@
 title: centos 常见问题
 date: 2020-02-26 15:10:23
 tags:
+categories: 软件安装
 ---
 
 ## 安装软件
