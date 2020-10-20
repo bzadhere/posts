@@ -261,6 +261,8 @@ socklen_t: 服务端长度
 return: 0 成功, -1 失败
 errno: ECONNREFUSED 目标端口不存在，被拒绝
 	   ETIMEDOUT  连接超时
+    
+// 先设置成非阻塞，然后调用connect，会立即返回-1, 报错 Operation now in progress, 默默的去三次握手。正常是先connect， 再设置sock选项
 ```
 
 

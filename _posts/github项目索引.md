@@ -47,7 +47,8 @@ An open-source C++ library developed and used at Facebook
 [Libco](https://github.com/Tencent/libco)
 libco是微信后台大规模使用的c/c++协程库, 构建高并发服务器应用
 
+[cs-wiki](https://github.com/Veal98/CS-Wiki)
+适合计算机专业学生看的教程
 
-
-
-
+[面试自学](https://github.com/jwasham/coding-interview-university/blob/master/translations/README-cn.md)
+我们在GitHub看到最励志的故事，自学进google

@@ -961,6 +961,13 @@ grep -v 'root' file #查询不包含root的行
 ps -ef | grep gmake | grep –v root | awk '{print $2}' | xargs  kill -9 # 杀进程
 echo "password" | passwd testuser --stdin # linux用shell修改密码
 cut -d " " -f 2,3 1.txt # 用空格分隔, 显示第二、三个字段列
+cat /etc/*-release # 查看系统版本
+ls -ld test/ # 查看目录权限, r/w 读/写取目录结构和目录里的文件, x 表示进入该目录的权限
+dmesg # 打印内核的消息缓冲区的信息
+cat /proc/cpuinfo # 查看cpu信息
+cat /etc/passwd # 查看用户组, useradd -d dir -g group -m username
+cat /etc/group # 查看组信息, groupadd -r/-g zjgrp, id/groups
+w # 查看当前登录用户
 ```
 
 # 其他
