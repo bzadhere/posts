@@ -52,3 +52,9 @@ libco是微信后台大规模使用的c/c++协程库, 构建高并发服务器�
 
 [面试自学](https://github.com/jwasham/coding-interview-university/blob/master/translations/README-cn.md)
 我们在GitHub看到最励志的故事，自学进google
+
+
+
+[PaddleOCR ](https://github.com/PaddlePaddle/PaddleOCR)
+
+良心开源OCR

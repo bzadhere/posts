@@ -41,6 +41,17 @@ set print pretty on
 # 源文件
 directory（或dir)命令设置源文件的查找目录
 
+
+
+# 动态库
+
+```
+(gdb) info sharedlibrary
+
+```
+
+
+
 # 断点
 
 ```
@@ -60,6 +71,21 @@ break calss:function
 (gdb) save breakpoints file-name-to-save
 // 下次调试时, 加载保存的断点
 (gdb) source file-name-to-save
+
+// 禁用或启动断点
+disable  #禁用所有断点
+disable bnum #禁用标号为bnum的断点
+enable  #启用所有断点
+enable bnum #启用标号为bnum的断点
+
+// 断点清除
+clear   #删除当前行所有breakpoints
+clear function  #删除函数名为function处的断点
+clear filename:function #删除文件filename中函数function处的断点
+clear lineNum #删除行号为lineNum处的断点
+clear f:lename：lineNum #删除文件filename中行号为lineNum处的断点
+delete  #删除所有breakpoints,watchpoints和catchpoints
+delete bnum #删除断点号为bnum的断点
 
 ```
 
@@ -96,6 +122,8 @@ until
 // 向上或向下移动栈帧
 (gdb) up n
 (gdb) down n
+
+// si与ni是汇编级别的单步调试
 ```
 
 # 观察点
@@ -315,6 +343,31 @@ win -> winheight
 
 
 
+
+# 问题
+
+```
+(gdb) p *m_pEventBase
+$4 = <incomplete type>
+// https://stackoverflow.com/questions/232744/how-to-print-incomplete-type-variable-in-gdb
+
+(gdb) whatis *m_pEventBase
+type = event_base
+(gdb) ptype *m_pEventBase
+type = struct event_base {
+    <incomplete type>
+}
+
+
+Breakpoint 1, 0x00002aaab1f394c1 in event_base_loop () from /data01/zjgrp/zjdev/ob_rel/lib/libevent-2.0.so.5
+Missing separate debuginfos, use: zypper install libadns1-debuginfo-1.4-101.65.x86_64 libaio1-debuginfo-0.3.109-17.15.x86_64
+(gdb) s
+Single stepping until exit from function event_base_loop,
+which has no line number information.
+
+// https://www.cnblogs.com/codemood/p/3141256.html
+// https://stackoverflow.com/questions/6538501/linking-two-shared-libraries-with-some-of-the-same-symbols/6540059#6540059
+```
 
 
 

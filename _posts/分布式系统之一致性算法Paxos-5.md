@@ -160,3 +160,9 @@ Paxos 在 节点宕机恢复、消息无序或丢失、网络分化 的场景下
 ZooKeeper 的 ZAB 协议，还有更加容易理解的 Raft 协议。
 
 
+
+
+
+# 8. 其他参考
+
+[EPaxos](https://mp.weixin.qq.com/s/KTZQjC1JokmwmCkOH8APdg)

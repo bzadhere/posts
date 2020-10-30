@@ -101,11 +101,28 @@ TCP状态转移：
 
 <img src="linux高性能服务器编程/image-20200810141623661.png" alt="image-20200810141623661" style="zoom: 67%;" />
 
-TIME_WAIT存在原因：可靠的终止TCP链接；保证迟来的TCP报文有足够的时间被识别并被丢弃。
+__TIME_WAIT存在原因：__可靠的终止TCP链接；保证迟来的TCP报文有足够的时间被识别并被丢弃。
 
-RST复位报文场景：访问不存在的端口，异常终止链接，处理半打开链接。
+---
 
-Nagel算法：在任意时刻，发送的TCP报文在未被确认到达之前不能发送其他报文，避免拥塞。
+__RST复位报文场景：__
+
+访问不存在的端口，如服务程序崩溃
+异常终止链接, 如
+
+​	1.接收端收到TCP报文，但是发现**该TCP连接并不在其已建立的TCP连接列表内**，则其直接向对端（发送端）发送reset报文
+
+​	2.在交互的双方中的某一方**长期未收到来自对方的确认报文，则其在超出一定的重传次数或时间后，会主动向对端发送reset报文释放该TCP连接(发送端向接收端发送RESET报文)**
+
+​	3.有些应用开发者在设计应用系统时，会利用reset报文快速释放已经完成数据交互的TCP连接，以提高业务交互的效率, 如安全设备防火墙
+
+处理半打开链接, 如对端已经关闭
+
+---
+
+__Nagel算法：__在任意时刻，发送的TCP报文在未被确认到达之前不能发送其他报文，避免拥塞。
+
+---
 
 TCP超时重传：
 
@@ -379,10 +396,24 @@ int setsockopt(int sockfd, int level, int option_name, void* option_value, sockl
 /*
 level: SOL_SOCKET 通用sock/ IPPROTO_IP / IPPROTO_IP6 / IPPROTO_TCP
 
-option_name: SO_REUSEADDR  可占用TIME_WAIT状态的socket
-             SO_RCVBUF, SO_SNDBUF 缓冲区大小
-    		 SO_RCVLOWAT, SO_SNDLOWAT 可读写低水位标志, 默认1字节, 可读/可写 大于 低水位，通知程序可读/可写
-    		 SO_LINGER 控制close关闭TCP连接的行为
+option_name: 
+  ----------------SOL_SOCKET---------------------------
+  SO_REUSEADDR  可占用TIME_WAIT状态的socket
+  SO_RCVBUF, SO_SNDBUF 缓冲区大小
+  SO_RCVLOWAT, SO_SNDLOWAT 可读写低水位标志, 默认1字节, 可读/可写 大于 低水位，通知程序可读/可写
+  SO_LINGER 控制close关闭TCP连接的行为
+  SO_SNDTIMEO
+  SO_RCVTIMEO
+  SO_OOBINLINE
+  -----------------IPPROTO_IP---------------------------
+  TCP_NODELAY 关闭Nagle算法
+  SO_KEEPALIVE
+  TCP_KEEPIDLE
+  TCP_KEEPINTVL
+  TCP_KEEPCNT
+  -----------------SOL_TCP------------------------------
+  TCP_CORK 设置时TCP链接不会发送任何的小包，即只有当数据量达到MSS时才会被发送， 发送完数据取消
+  TCP_QUICKACK 
 */
 
 struct linger { 
@@ -838,7 +869,9 @@ LT 水平触发，默认方式，事件不处理下次还会触发；
 
 ET 边缘触发，事件必须被处理，下次不会触发。
 
+[Epoll在LT和ET模式下的读写方式](http://blog.chinaunix.net/uid-20775448-id-3603224.html)
 
+[epoll的本质是什么](https://my.oschina.net/editorial-story/blog/3052308)
 
 ### 区别比较
 
