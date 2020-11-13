@@ -58,3 +58,9 @@ libco是微信后台大规模使用的c/c++协程库, 构建高并发服务器�
 [PaddleOCR ](https://github.com/PaddlePaddle/PaddleOCR)
 
 良心开源OCR
+
+libucu++
+libcu++ 是 NVIDIA 开源的 C++ 标准库，提供了 C++ 标准库的异构实现，可以在 CPU 和 GPU 代码之间使用。
+
+
+
