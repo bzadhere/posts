@@ -39,3 +39,32 @@ categories:
 
 
 
+# TS-453D 设置
+
+## docker
+
+**Container Station**  多用就可以了
+
+目录列表：H5ai, Zdir
+
+个人网盘：可道云，nextcloud， 
+
+gitlab：
+
+下载：人人影视，迅雷，
+
+## 外网访问
+
+公网IP，frp内网穿透，IPV6+DDNS
+
+[内网穿透：在公网访问你家的 NAS - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/57477087)
+
+[两款动态域名解析商 DDNS : dynu 和 noip - 云+社区 - 腾讯云 (tencent.com)](https://cloud.tencent.com/developer/article/1562616)
+
+[Home | Asuswrt-Merlin (asuswrt-merlin.net)](https://www.asuswrt-merlin.net/)
+
+[威联通（QNAP）硬盘不休眠（待机）的解决方法_Bpazy的博客-CSDN博客_威联通硬盘休眠](https://blog.csdn.net/hanziyuan08/article/details/104933718)
+
+[杭州地区的电信和移动宽带合并的问题 - Synology - KoolShare - 源于玩家 服务玩家](https://koolshare.cn/thread-185864-1-1.html)
+
+[移动宽带没有公网IP？不，它有公网IPv6，你只需要…… | Kiong Blog | 软件|影视|资源|下载|PC936|www.pc936.com](http://www.pc936.com/index.php/article/22.html)

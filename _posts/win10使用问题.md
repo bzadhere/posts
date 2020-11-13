@@ -93,3 +93,21 @@ C:\Program Files\WindowsApps   应用商店，不用可删除
 > 删除临时文件：设置=>系统=>存储=>C盘=>临时文件=>删除文件
 
 > 虚拟内存更改：我的电脑=>右键属性=>高级系统设置=>高级=>（视觉效果)设置=>高级=>(虚拟内存)更改
+
+
+
+## 开发环境
+
+[Chocolatey Software | Chocolatey - The package manager for Windows](https://chocolatey.org/)
+
+
+
+## 网络适配器不见了
+
+网络相关服务被禁止了
+
+1. win+R => msconfig => 服务 => 全部启用
+
+## 禁止MaxxAudio图标
+
+任务管理器 =>　启动　=>  禁止

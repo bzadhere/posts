@@ -402,15 +402,15 @@ option_name:
   SO_RCVBUF, SO_SNDBUF 缓冲区大小
   SO_RCVLOWAT, SO_SNDLOWAT 可读写低水位标志, 默认1字节, 可读/可写 大于 低水位，通知程序可读/可写
   SO_LINGER 控制close关闭TCP连接的行为
-  SO_SNDTIMEO
-  SO_RCVTIMEO
-  SO_OOBINLINE
+  SO_SNDTIMEO 设置发送超时时间, 超时 errno = EWOULDBLOCK
+  SO_RCVTIMEO 设置接收超时时间, 超时 errno = EWOULDBLOCK
+  SO_OOBINLINE 紧急数据放入普通数据流
   -----------------IPPROTO_IP---------------------------
   TCP_NODELAY 关闭Nagle算法
-  SO_KEEPALIVE
-  TCP_KEEPIDLE
-  TCP_KEEPINTVL
-  TCP_KEEPCNT
+  SO_KEEPALIVE 
+  TCP_KEEPIDLE 
+  TCP_KEEPINTVL 
+  TCP_KEEPCNT 
   -----------------SOL_TCP------------------------------
   TCP_CORK 设置时TCP链接不会发送任何的小包，即只有当数据量达到MSS时才会被发送， 发送完数据取消
   TCP_QUICKACK 
