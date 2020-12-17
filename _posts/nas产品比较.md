@@ -53,6 +53,8 @@ gitlab：
 
 下载：人人影视，迅雷，
 
+[套件不求人，威联通Docker Compose体验及配置编写_NAS存储_什么值得买 (smzdm.com)](https://post.smzdm.com/p/aekwr7r3/)
+
 ## 外网访问
 
 公网IP，frp内网穿透，IPV6+DDNS

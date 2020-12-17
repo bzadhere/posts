@@ -119,9 +119,9 @@ github 上搜关键字 leetcode， 比如 yuanguangxin/LeetCode
 
 
 
-# 三、TO-DO
+# 三、破题套路
 
-
+观察现场，收集线索，然后大胆假设，小心求证。一点点破开谜题，获取真相。
 
 
 
