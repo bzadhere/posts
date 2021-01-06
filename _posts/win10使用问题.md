@@ -53,7 +53,7 @@ C:\Windows\Installer
 
 ## 快捷键
 
-win + d  窗口最小化
+win + d  窗口最小化，显示桌面
 
 win + e 打开我的电脑
 
@@ -111,3 +111,28 @@ C:\Program Files\WindowsApps   应用商店，不用可删除
 ## 禁止MaxxAudio图标
 
 任务管理器 =>　启动　=>  禁止
+
+
+
+## 进入安全模式
+
+win + R =>　msconfig ，选择  引导=> 安全引导=＞最小 => 确定
+
+![image-20201218101725735](win10使用问题/image-20201218101725735.png)
+
+
+
+## 截图
+
+win + PrtScr ， 截取最前面的窗口，图片保存在我的电脑=》图片=》屏幕截图
+
+win + shift + s , 区域截图，Ctrl+V 可以粘贴
+
+win + w 屏幕绘图 ， 叫出Windows Ink工作区， 自己绘图，非常给力
+
+edge 截取长图，F12=》切换仿真设备(元素旁边按钮) =》捕获全尺寸屏幕截图
+
+![](win10使用问题/2.png)
+
+
+
