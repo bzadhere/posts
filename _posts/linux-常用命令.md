@@ -976,4 +976,18 @@ w # 查看当前登录用户
 
 
 
+# 找出最大CPU线程
+
+```shell
+host-10-19-14-51:/data01/zjgrp/zjv8cs2/users> ps -Leo pid,lwp,user,comm,pcpu|awk '$4=="sframe"{print $0}'|sort -k5 -r -n|head --lines 3
+31953 32248 zjv8cs2  sframe           3.8
+31953 32169 zjv8cs2  sframe           3.0
+30847 30912 zjv8cs2  sframe           1.0
+
+host-10-19-14-51:/data01/zjgrp/zjv8cs2/users> gstack 31953 > 31953_gstack.log
+
+host-10-19-14-51:/data01/zjgrp/zjv8cs2/users> cat 31953_gstack.log |grep 32248
+Thread 5 (Thread 0x2ae62bff7700 (LWP 32248)):
+
+```
 
