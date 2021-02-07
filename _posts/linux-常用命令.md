@@ -941,7 +941,20 @@ enabled=1
 gpgkey=https://www.mongodb.org/static/pgp/server-4.0.asc
 ```
 
+
+
+## tree
+
+```
+
+```
+
+
+
+
+
 # 常用技巧：
+
 ```
 cat file1 file2 >file3  #合并文件
 tac file #以行为单位，倒序显示
@@ -990,4 +1003,63 @@ host-10-19-14-51:/data01/zjgrp/zjv8cs2/users> cat 31953_gstack.log |grep 32248
 Thread 5 (Thread 0x2ae62bff7700 (LWP 32248)):
 
 ```
+
+
+
+# od
+
+```shell
+# 一般是符号使用错误引起的，有时甚至是空格 .英文输入法切换到中文输入法导致
+# od 查看特殊格式的文件内容
+test.cpp:22:2: 错误：程序中有游离的‘\243’
+  Teacher* p1 = new Teacher(1111）;
+  ^
+test.cpp:22:2: 错误：程序中有游离的‘\251’
+test.cpp: 在函数‘int main()’中:
+test.cpp:22:34: 错误：expected ‘)’ before ‘;’ token
+  Teacher* p1 = new Teacher(1111）;
+                                  ^
+test.cpp:22:34: 错误：对‘Teacher::Teacher()’的调用没有匹配的函数
+test.cpp:10:2: 附注：candidate: Teacher::Teacher(int)
+  Teacher(int i) : a(i){}
+
+# 以 ASCII字符或反斜杠序列输出到自定义文件 中
+%od -c test.cpp > log.txt
+%cat log.txt |grep 243
+0000520   T   e   a   c   h   e   r   (   1   1   1   1 243 251   ;  \n
+
+```
+
+
+
+# GNU Binutils
+
+```
+
+```
+
+The GNU Binutils are a collection of binary tools. The main ones are:
+
+- **ld** - the GNU linker.
+- **as** - the GNU assembler.
+
+But they also include:
+
+- **addr2line** - Converts addresses into filenames and line numbers.
+- **ar** - A utility for creating, modifying and extracting from archives.
+- **c++filt** - Filter to demangle encoded C++ symbols.
+- **dlltool** - Creates files for building and using DLLs.
+- **gold** - A new, faster, ELF only linker, still in beta test.
+- **gprof** - Displays profiling information.
+- **nlmconv** - Converts object code into an NLM.
+- **nm** - Lists symbols from object files.
+- **objcopy** - Copies and translates object files.
+- **objdump** - Displays information from object files.
+- **ranlib** - Generates an index to the contents of an archive.
+- **readelf** - Displays information from any ELF format object file.
+- **size** - Lists the section sizes of an object or archive file.
+- **strings** - Lists printable strings from files.
+- **strip** - Discards symbols.
+- **windmc** - A Windows compatible message compiler.
+- **windres** - A compiler for Windows resource files.
 

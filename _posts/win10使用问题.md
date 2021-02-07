@@ -134,5 +134,38 @@ edge 截取长图，F12=》切换仿真设备(元素旁边按钮) =》捕获全�
 
 ![](win10使用问题/2.png)
 
+## 拖入.crx
+
+开启功能
+
+- Chrome 浏览器，地址栏输入并回车：
+  - `chrome://flags/#extensions-on-chrome-urls`
+- Edge 新版浏览器，地址栏输入并回车：
+  - `edge://flags/#extensions-on-edge-urls`
+
+![image-20210124125714869](win10使用问题/image-20210124125714869.png)
 
 
+
+
+
+## 无线投屏到电视
+
+设置=> 系统
+
+![image-20210129155340049](win10使用问题/image-20210129155340049.png)
+
+
+
+## windows镜像下载
+
+https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/
+
+
+
+## 下载工具
+
+下载工具
+https://zhuanlan.zhihu.com/p/28370071
+m3u8下载工具
+https://sspai.com/post/61738

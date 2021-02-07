@@ -98,3 +98,27 @@ passwd ftpuser
 
 ```
 
+
+
+## 发送邮件
+
+```
+
+```
+
+
+
+## 安装自定义DNS
+
+```
+yum -y install dnsmasq wget unzip
+rm -rf/etc/dnsmasq.d
+rm -rf/etc/hosts.d
+rm -rf/etc/dnsmasq. conf
+wget "http://yun.94ish.me/%E5%8D%9A%E5%AE%A2%E9%99%84%E4%BB%B6/%E5%9B%BD%E5%A4%96%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BC%98%E5%8C%96/dnsmasq.zip"
+unzip -o dnsmasq.zip -d/etc
+service dnsmasq restart
+chkconfig dnsmasq on
+
+```
+

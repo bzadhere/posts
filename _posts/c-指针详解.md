@@ -32,6 +32,9 @@ int main ()
 ```
 
 # 指针数组
+
+
+
 ```
 #include <iostream>
 using namespace std;
@@ -55,14 +58,46 @@ int main ()
 }
 ```
 
-# 多级指针
-![](c-指针详解/1.jpg)
+
+
+# 二级指针
+
+二级指针可以看成是由指针组成的一维数组
+
+![](c-指针详解/2.png)
+```c++
+// 一级或二级指针都不能中括号相邻分配
+int* p = new int[2][2]; // 编译错误：不能在初始化时将‘int (*)[2]’转换为‘int*’
+int** pp = new int[2][2]; // 编译错误: 不能在初始化时将‘int (*)[2]’转换为‘int**’
+
+// 二级指针初始化
+int rowsNum = 2;
+int colsNum = 4;
+int** a = new int*[rowsNum]; // 内存分配
+for(int i = 0; i < rowsNum; i++)
+{
+	a[i] = new int[colsNum];
+}
+for(int i = 0; i < rowsNum; i++)// 内存释放
+{
+	 delete[] a[i];
+}
+delete []a;
+
 
 ```
+
+
+
+* 二级指针经典应用
+
+![](c-指针详解/1.jpg)
+
+```c++
 // 值传递 因为有临时拷贝
 void getMemory(char** p, int num)
 {
-  *p = (char*)malloc(num);
+  *p = (char*)malloc(num);	// 直接操作第一级指针，赋值给它
 }
 
 // 引用传递 直接使用
@@ -73,25 +108,7 @@ void lookup_AdjDetail(int key, const CAdjDetail*& pVal)
 
 ```
 
-# 二维数据指针
 
-![](c-指针详解/2.png)
-```
-int rowsNum = 2;
-int colsNum = 4;
-// 内存分配
-int** a = new int*[rowsNum];
-for(int i = 0; i < rowsNum; i++)
-{
-	a[i] = new int[colsNum];
-}
-// 内存释放
-for(int i = 0; i < rowsNum; i++)
-{
-	 delete[] a[i];
-}
-delete []a;
-```
 
 # 指针运算
 

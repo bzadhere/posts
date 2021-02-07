@@ -222,8 +222,19 @@ Default count is 1.  Default address is following last thing printed
 // 只打印当前函数局部变量的值
 (gdb) info locals
 
-// 查看进程的内存映射信息
-(gdb)info proc mappings
+// 查看进程的内存映射信息, 等价于 shell pmap 20026
+(gdb) info proc mappings
+process 20026
+Mapped address spaces:
+
+          Start Addr           End Addr       Size     Offset objfile
+            0x400000           0x401000     0x1000        0x0 /data01/zjgrp/zjdev/users/zhangbb/Test/build/test
+            0x601000           0x602000     0x1000     0x1000 /data01/zjgrp/zjdev/users/zhangbb/Test/build/test
+            0x602000           0x603000     0x1000     0x2000 /data01/zjgrp/zjdev/users/zhangbb/Test/build/test
+           0x2033000          0x2a34000   0xa01000        0x0 [heap]
+
+// 打印堆内存内容， strings -10 filename 查看数据内容
+(gdb) dump [format] memory filename start_addr end_addr
 
 // 查看进程的内存信息，包括引用的动态链接库等
 (gdb)info files
@@ -339,6 +350,20 @@ tb -> tbreak
 wa -> watch
 win -> winheight
 ```
+
+# 日志输出
+
+```
+(gdb) set logging on
+Copying output to gdb.txt.
+(gdb) 
+
+
+```
+
+
+
+
 
 
 
